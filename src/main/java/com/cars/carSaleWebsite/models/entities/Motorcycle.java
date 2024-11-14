@@ -18,5 +18,5 @@ import java.util.UUID;
 @Entity
 public class Motorcycle extends VehicleAbstract {
     private int engineDisplacement;
-
+    //test
 }
