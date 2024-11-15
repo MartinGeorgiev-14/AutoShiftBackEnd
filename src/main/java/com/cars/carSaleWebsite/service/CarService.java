@@ -5,6 +5,7 @@ import com.cars.carSaleWebsite.dto.CarPaginationResponse;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface CarService {
@@ -14,5 +15,5 @@ public interface CarService {
     CarDto getCarById(UUID id);
     CarDto updateCar(CarDto carDto, UUID id);
     void deleteCar(UUID id);
-
+    Set<CarDto> getAllCarSet();
 }

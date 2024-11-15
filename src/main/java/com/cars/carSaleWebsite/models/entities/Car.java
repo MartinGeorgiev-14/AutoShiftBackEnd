@@ -1,12 +1,12 @@
 package com.cars.carSaleWebsite.models.entities;
 
 import com.cars.carSaleWebsite.models.abstracts.VehicleAbstract;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.util.UUID;
 
@@ -21,8 +21,11 @@ public class Car {
     private UUID id;
     private String brand;
     private String model;
-    private String engineType;
     private String color;
     private int mileage;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "engine_id")
+    private Engine engine;
 
 }

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -30,6 +31,11 @@ public class CarController {
     @GetMapping("car")
     public ResponseEntity<List<CarDto>> getCars(){
         return new ResponseEntity<>(carService.getAllCar(), HttpStatus.OK);
+    }
+
+    @GetMapping("car/set")
+    public ResponseEntity<Set<CarDto>> getAllCarSet(){
+        return new ResponseEntity<>(carService.getAllCarSet(), HttpStatus.OK);
     }
 
     @GetMapping("car/page")

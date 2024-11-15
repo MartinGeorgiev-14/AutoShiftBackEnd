@@ -10,11 +10,13 @@ import com.cars.carSaleWebsite.service.CarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -34,7 +36,6 @@ public class CarServiceImpl implements CarService {
         car.setBrand(carDto.getBrand());
         car.setModel(carDto.getModel());
         car.setColor(carDto.getColor());
-        car.setEngineType(carDto.getEngineType());
         car.setMileage(carDto.getMileage());
 
         Car newCar = carRepository.save(car);
@@ -45,7 +46,6 @@ public class CarServiceImpl implements CarService {
         carResponse.setBrand(newCar.getBrand());
         carResponse.setModel(newCar.getModel());
         carResponse.setColor(newCar.getColor());
-        carResponse.setEngineType(newCar.getEngineType());
         carResponse.setMileage(newCar.getMileage());
 
         return carResponse;
@@ -90,7 +90,6 @@ public class CarServiceImpl implements CarService {
         car.setModel(carDto.getModel());
         car.setColor(carDto.getColor());
         car.setMileage(carDto.getMileage());
-        car.setEngineType(carDto.getEngineType());
 
         Car updatedCar = carRepository.save(car);
 
@@ -103,13 +102,18 @@ public class CarServiceImpl implements CarService {
         carRepository.delete(car);
     }
 
+    @Override
+    public Set<CarDto> getAllCarSet() {
+        Set<Car> cars = carRepository.getAll();
+        return cars.stream().map(c -> mapToDtop(c)).collect(Collectors.toSet());
+    }
+
     private CarDto mapToDtop(Car car){
         CarDto carDto = new CarDto();
 
         carDto.setId(car.getId());
         carDto.setBrand(car.getBrand());
         carDto.setModel(car.getModel());
-        carDto.setEngineType(car.getEngineType());
         carDto.setColor(car.getColor());
         carDto.setMileage(car.getMileage());
 
@@ -122,7 +126,6 @@ public class CarServiceImpl implements CarService {
         car.setId(carDto.getId());
         car.setBrand(carDto.getBrand());
         car.setModel(carDto.getModel());
-        car.setEngineType(carDto.getEngineType());
         car.setColor(car.getColor());
         car.setMileage(car.getMileage());
 
