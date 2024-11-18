@@ -2,15 +2,14 @@ package com.cars.carSaleWebsite.dto;
 
 import lombok.Data;
 
-@Data
-public class RegisterDto {
+import java.util.UUID;
 
-    private String message;
+@Data
+public class UserEntityDto {
+    private UUID id;
     private String username;
-    private String password;
     private String email;
-    private String phone;
     private String firstName;
     private String lastName;
-
+    private String phone;
 }

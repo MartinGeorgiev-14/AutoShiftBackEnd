@@ -1,19 +1,17 @@
 package com.cars.carSaleWebsite.controllers;
 
-import com.cars.carSaleWebsite.dto.AuthResponseDTO;
-import com.cars.carSaleWebsite.dto.LoginDto;
-import com.cars.carSaleWebsite.dto.RegisterDto;
+import com.cars.carSaleWebsite.dto.*;
 import com.cars.carSaleWebsite.models.entities.Role;
 import com.cars.carSaleWebsite.models.entities.UserEntity;
 import com.cars.carSaleWebsite.repository.RoleRepository;
-import com.cars.carSaleWebsite.repository.UserRepository;
+import com.cars.carSaleWebsite.repository.UserEntityRepository;
 import com.cars.carSaleWebsite.security.JWTGenerator;
+import com.cars.carSaleWebsite.service.UserEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collection;
+import javax.management.relation.RoleNotFoundException;
 import java.util.Collections;
 
 @RestController
@@ -30,51 +28,61 @@ import java.util.Collections;
 public class AuthController {
 
     private AuthenticationManager authenticationManager;
-    private UserRepository userRepository;
+    private UserEntityRepository userEntityRepository;
     private RoleRepository roleRepository;
     private PasswordEncoder passwordEncoder;
     private JWTGenerator jwtGenerator;
+    private UserEntityService userEntityService;
 
     @Autowired
-    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository,
-                          RoleRepository roleRepository, PasswordEncoder passwordEncoder, JWTGenerator jwtGenerator) {
+    public AuthController(AuthenticationManager authenticationManager, UserEntityRepository userEntityRepository,
+                          RoleRepository roleRepository, PasswordEncoder passwordEncoder, JWTGenerator jwtGenerator,
+                          UserEntityService userEntityService) {
         this.authenticationManager = authenticationManager;
-        this.userRepository = userRepository;
+        this.userEntityRepository = userEntityRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtGenerator = jwtGenerator;
+        this.userEntityService = userEntityService;
 
     }
 
     @PostMapping("register")
-    public ResponseEntity<String> register(@RequestBody RegisterDto registerDto){
-        if(userRepository.existsByUsername(registerDto.getUsername())){
-            return new ResponseEntity<>("Username is taken", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<RegisterDto> register(@RequestBody RegisterDto registerDto) throws RoleNotFoundException {
+        Boolean error = false;
+        RegisterDto register = new RegisterDto();
+
+        if(userEntityService.existsNameByName(registerDto.getUsername())){
+            register.setUsername("Username is taken");
+            error = true;
+        }
+        if(userEntityService.existsEmailByEmail(registerDto.getEmail())){
+            register.setEmail("Email is already taken");
+            error = true;
+        }
+        if(!(userEntityService.isValidPassword(registerDto.getPassword()))){
+            register.setPassword("Your password must contain at least 1 Upper case and special character");
+            error = true;
         }
 
-        UserEntity user = new UserEntity();
-        user.setUsername(registerDto.getUsername());
-        user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
-        user.setEmail(registerDto.getEmail());
-        user.setPhone(registerDto.getPhone());
-        user.setFirstName(registerDto.getFirstName());
-        user.setLastName(registerDto.getLastName());
+        if(error){
+            return new ResponseEntity<>(register, HttpStatus.BAD_REQUEST);
+        }
 
-        Role roles = roleRepository.findByName("User").get();
-        user.setRoles(Collections.singleton(roles));
+        String message = userEntityService.createUser(registerDto);
+        register.setMessage(message);
 
-        userRepository.save(user);
-
-        return new ResponseEntity<>("User registered success!", HttpStatus.OK);
+        return new ResponseEntity<>(register, HttpStatus.OK);
     }
 
     @PostMapping("login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginDto loginDto){
-        Authentication authentication = authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
+        UserEntityDto user = userEntityService.findUserByUsername(loginDto.getUsername());
+
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = jwtGenerator.generateToken(authentication);
-        return new ResponseEntity<>(new AuthResponseDTO(token), HttpStatus.OK);
 
+        return new ResponseEntity<>(new AuthResponseDTO(token, user.getPhone(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getUsername(), user.getId()), HttpStatus.OK);
     }
 }
