@@ -1,8 +1,7 @@
 package com.cars.carSaleWebsite.repository;
 
-import com.cars.carSaleWebsite.models.entities.Role;
+import com.cars.carSaleWebsite.models.entities.user.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.UUID;

@@ -2,7 +2,6 @@ package com.cars.carSaleWebsite.service;
 
 import com.cars.carSaleWebsite.dto.RegisterDto;
 import com.cars.carSaleWebsite.dto.UserEntityDto;
-import com.cars.carSaleWebsite.models.entities.UserEntity;
 
 import javax.management.relation.RoleNotFoundException;
 

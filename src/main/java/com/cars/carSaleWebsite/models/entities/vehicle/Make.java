@@ -1,7 +1,6 @@
-package com.cars.carSaleWebsite.models.entities;
+package com.cars.carSaleWebsite.models.entities.vehicle;
 
 import com.cars.carSaleWebsite.models.abstracts.BaseAbstract;
-import com.cars.carSaleWebsite.models.abstracts.VehicleAbstract;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
@@ -11,14 +10,12 @@ import lombok.NoArgsConstructor;
 
 import java.util.Set;
 
+@Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-public class Gearbox extends BaseAbstract {
-
-    private String type;
-
-//    @OneToMany(mappedBy = "gearbox", cascade = CascadeType.ALL)
-//    private Set<VehicleAbstract> vehicleSet;
+public class Make extends BaseAbstract {
+    private String name;
+//    @OneToMany(mappedBy = "make", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private Set<Model> modelsSet;
 }

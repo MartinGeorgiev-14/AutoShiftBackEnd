@@ -1,6 +1,6 @@
 package com.cars.carSaleWebsite.repository;
 
-import com.cars.carSaleWebsite.models.entities.UserEntity;
+import com.cars.carSaleWebsite.models.entities.user.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

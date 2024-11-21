@@ -10,8 +10,6 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @MappedSuperclass
 public abstract class BaseAbstract {
     @Id

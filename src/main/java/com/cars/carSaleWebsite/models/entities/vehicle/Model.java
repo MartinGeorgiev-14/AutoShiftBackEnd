@@ -1,4 +1,4 @@
-package com.cars.carSaleWebsite.models.entities;
+package com.cars.carSaleWebsite.models.entities.vehicle;
 
 import com.cars.carSaleWebsite.models.abstracts.BaseAbstract;
 import jakarta.persistence.Entity;

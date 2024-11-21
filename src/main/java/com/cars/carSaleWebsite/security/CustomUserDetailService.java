@@ -1,7 +1,7 @@
 package com.cars.carSaleWebsite.security;
 
-import com.cars.carSaleWebsite.models.entities.Role;
-import com.cars.carSaleWebsite.models.entities.UserEntity;
+import com.cars.carSaleWebsite.models.entities.user.Role;
+import com.cars.carSaleWebsite.models.entities.user.UserEntity;
 import com.cars.carSaleWebsite.repository.UserEntityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;

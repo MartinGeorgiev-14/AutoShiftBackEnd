@@ -1,8 +1,6 @@
 package com.cars.carSaleWebsite.controllers;
 
 import com.cars.carSaleWebsite.dto.*;
-import com.cars.carSaleWebsite.models.entities.Role;
-import com.cars.carSaleWebsite.models.entities.UserEntity;
 import com.cars.carSaleWebsite.repository.RoleRepository;
 import com.cars.carSaleWebsite.repository.UserEntityRepository;
 import com.cars.carSaleWebsite.security.JWTGenerator;
@@ -21,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.management.relation.RoleNotFoundException;
-import java.util.Collections;
 
 @RestController
 @RequestMapping("/api/auth")

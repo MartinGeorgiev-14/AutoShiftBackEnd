@@ -2,8 +2,8 @@ package com.cars.carSaleWebsite.service.impl;
 
 import com.cars.carSaleWebsite.dto.RegisterDto;
 import com.cars.carSaleWebsite.dto.UserEntityDto;
-import com.cars.carSaleWebsite.models.entities.Role;
-import com.cars.carSaleWebsite.models.entities.UserEntity;
+import com.cars.carSaleWebsite.models.entities.user.Role;
+import com.cars.carSaleWebsite.models.entities.user.UserEntity;
 import com.cars.carSaleWebsite.repository.RoleRepository;
 import com.cars.carSaleWebsite.repository.UserEntityRepository;
 import com.cars.carSaleWebsite.service.UserEntityService;
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import javax.management.relation.RoleNotFoundException;
 import java.util.Collections;
-import java.util.UUID;
 
 @Service
 public class UserEntityServiceImpl implements UserEntityService {
