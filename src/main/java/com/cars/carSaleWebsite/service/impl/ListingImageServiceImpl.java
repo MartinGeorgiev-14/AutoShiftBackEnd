@@ -2,10 +2,12 @@ package com.cars.carSaleWebsite.service.impl;
 
 import com.cars.carSaleWebsite.dto.ListingImageDto;
 import com.cars.carSaleWebsite.models.entities.listing.ListingImage;
+import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.repository.ListingImageRepository;
 import com.cars.carSaleWebsite.service.ListingImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -13,21 +15,28 @@ import java.util.HashSet;
 import java.util.UUID;
 
 @Service
-public class ImageListingServiceImpl implements ListingImageService {
+public class ListingImageServiceImpl implements ListingImageService {
 
     ListingImageRepository listingImageRepository;
 
     @Autowired
-    public ImageListingServiceImpl(ListingImageRepository listingImageRepository) {
+    public ListingImageServiceImpl(ListingImageRepository listingImageRepository) {
         this.listingImageRepository = listingImageRepository;
     }
 
     @Override
-    public HashSet<ListingImageDto> getAllImagesOfListing(UUID id) {
-        Set<ListingImage> images = listingImageRepository.getAllListingImagesByListing(id);
-        HashSet<ListingImageDto> mapped = (HashSet<ListingImageDto>) images.stream().map(i -> mapToDto(i)).collect(Collectors.toSet());
+    @Transactional(readOnly = true)
+    public HashSet<ListingImageDto> getAllImagesOfListingById(ListingVehicle id) {
+        try{
+            Set<ListingImage> images = listingImageRepository.getAllListingImagesByListing(id);
+            HashSet<ListingImageDto> mapped = (HashSet<ListingImageDto>) images.stream().map(i -> mapToDto(i)).collect(Collectors.toSet());
+            return mapped;
+        }
+        catch (Exception ex){
+            throw new RuntimeException(ex);
+        }
 
-        return mapped;
+
     }
 
     private ListingImageDto mapToDto(ListingImage list){

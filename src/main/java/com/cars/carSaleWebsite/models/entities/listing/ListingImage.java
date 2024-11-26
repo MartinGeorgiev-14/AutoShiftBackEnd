@@ -18,7 +18,7 @@ public class ListingImage extends BaseAbstract {
     private byte[] imageData;
 
     @ManyToOne
-    @JoinColumn(name = "listing_id", nullable = false)
+    @JoinColumn(name = "listing_id", nullable = false, columnDefinition = "BLOB")
     private ListingVehicle listingId;
 
     public boolean getIsMain() {

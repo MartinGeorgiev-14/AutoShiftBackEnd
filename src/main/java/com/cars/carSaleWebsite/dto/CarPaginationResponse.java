@@ -6,7 +6,7 @@ import java.util.List;
 
 @Data
 public class CarPaginationResponse {
-    private List<CarDto> content;
+    private List<ListingCarDto> content;
     private int PageNo;
     private int PageSize;
     private long totalElements;
