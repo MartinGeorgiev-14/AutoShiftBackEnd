@@ -5,11 +5,18 @@ import com.cars.carSaleWebsite.dto.ListingImageDto;
 import com.cars.carSaleWebsite.dto.UserEntityDto;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
+import com.cars.carSaleWebsite.models.entities.vehicle.Body;
+import com.cars.carSaleWebsite.models.entities.vehicle.Engine;
+import com.cars.carSaleWebsite.models.entities.vehicle.Gearbox;
+import com.cars.carSaleWebsite.models.entities.vehicle.Model;
 import com.cars.carSaleWebsite.repository.UserEntityRepository;
+import com.cars.carSaleWebsite.service.ListingCarService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 
 @Component
 public class ListingCarMapper {
@@ -22,14 +29,14 @@ public class ListingCarMapper {
         this.userEntityMapper = userEntityMapper;
     }
 
-    public ListingCarDto toDTO(ListingVehicle vehicle, UserEntityDto mappedUser, HashSet<ListingImageDto> images){
+    public ListingCarDto toDTO(ListingVehicle vehicle, UserEntityDto mappedUser, List<ListingImageDto> images){
 
 
         ListingCarDto car = new ListingCarDto();
 
         car.setBody(vehicle.getBody().getBody());
         car.setId(vehicle.getId());
-        car.setDesciption(vehicle.getDescription());
+        car.setDescription(vehicle.getDescription());
         car.setEngine(vehicle.getEngine().getType());
         car.setGearbox(vehicle.getGearbox().getType());
         car.setMake(vehicle.getModel().getMake().getName());
@@ -45,5 +52,23 @@ public class ListingCarMapper {
 
         return car;
 
+    }
+
+    public ListingVehicle toEntity(ListingCarDto car, UserEntity user, Model model, Engine engine, Gearbox gearbox, Body body){
+        ListingVehicle newCar = new ListingVehicle();
+
+        newCar.setPrice(car.getPrice());
+        newCar.setCreatedAt(new Date());
+        newCar.setHorsepower(car.getHorsepower());
+        newCar.setMileage(car.getMileage());
+        newCar.setDescription(car.getDescription());
+        newCar.setEngineDisplacement(car.getEngineDisplacement());
+        newCar.setModel(model);
+        newCar.setEngine(engine);
+        newCar.setGearbox(gearbox);
+        newCar.setBody(body);
+        newCar.setUserEntity(user);
+
+        return newCar;
     }
 }

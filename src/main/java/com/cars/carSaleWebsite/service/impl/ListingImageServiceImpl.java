@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.HashSet;
@@ -26,10 +27,10 @@ public class ListingImageServiceImpl implements ListingImageService {
 
     @Override
     @Transactional(readOnly = true)
-    public HashSet<ListingImageDto> getAllImagesOfListingById(ListingVehicle id) {
+    public List<ListingImageDto> getAllImagesOfListingById(ListingVehicle id) {
         try{
             Set<ListingImage> images = listingImageRepository.getAllListingImagesByListing(id);
-            HashSet<ListingImageDto> mapped = (HashSet<ListingImageDto>) images.stream().map(i -> mapToDto(i)).collect(Collectors.toSet());
+            List<ListingImageDto> mapped = images.stream().map(i -> mapToDto(i)).collect(Collectors.toList());
             return mapped;
         }
         catch (Exception ex){

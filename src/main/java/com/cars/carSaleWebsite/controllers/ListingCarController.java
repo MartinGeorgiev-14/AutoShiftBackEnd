@@ -5,9 +5,12 @@ import com.cars.carSaleWebsite.dto.ListingCarDto;
 import com.cars.carSaleWebsite.service.ListingCarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -28,6 +31,12 @@ public class ListingCarController {
         ListingCarDto car = listingCarService.getCarById(id);
 
         return new ResponseEntity<>(car, HttpStatus.OK);
+    }
+
+    @PostMapping(path = "car/create")
+    public ResponseEntity<String> postCar(@RequestPart("listing") ListingCarDto car,
+                                          @RequestPart("uploadImages") List<MultipartFile> images) throws IOException {
+        return new ResponseEntity<>(listingCarService.createCarListing(car, images), HttpStatus.CREATED);
     }
 
 //    @GetMapping("car")

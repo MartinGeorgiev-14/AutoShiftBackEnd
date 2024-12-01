@@ -6,10 +6,7 @@ import com.cars.carSaleWebsite.models.entities.vehicle.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 public class ListingCarDto
@@ -24,10 +21,12 @@ public class ListingCarDto
     private Date editedAt;
     private int horsepower;
     private int mileage;
-    private String desciption;
+    private String description;
     private String engine;
     private String gearbox;
-    private Set<ListingImageDto> images = new HashSet<>();
+    private Integer engineDisplacement;
+    private int mainImgIndex;
+    private List<ListingImageDto> images;
 
     private String type;
     private String body;
