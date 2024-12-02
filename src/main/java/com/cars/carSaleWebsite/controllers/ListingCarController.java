@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -26,6 +27,11 @@ public class ListingCarController {
         this.listingCarService = listingCarService;
     }
 
+    @GetMapping("car")
+    public ResponseEntity<HashSet<ListingCarDto>> getCars(){
+        return new ResponseEntity<>(listingCarService.getAllCars(), HttpStatus.OK);
+    }
+
     @GetMapping("car/{id}")
     public ResponseEntity<ListingCarDto> getCarById(@PathVariable UUID id){
         ListingCarDto car = listingCarService.getCarById(id);
@@ -33,16 +39,14 @@ public class ListingCarController {
         return new ResponseEntity<>(car, HttpStatus.OK);
     }
 
-    @PostMapping(path = "car/create")
-    public ResponseEntity<String> postCar(@RequestPart("listing") ListingCarDto car,
-                                          @RequestPart("uploadImages") List<MultipartFile> images) throws IOException {
-        return new ResponseEntity<>(listingCarService.createCarListing(car, images), HttpStatus.CREATED);
+    @PostMapping(path = "car/create", consumes = {"multipart/form-data"})
+    public ResponseEntity<String> postCar(@ModelAttribute ListingCarDto car,
+                                          @RequestPart("uploadImages") List<MultipartFile> images,
+                                          @RequestParam("userId") String user) throws IOException {
+        return new ResponseEntity<>(listingCarService.createCarListing(car, user, images), HttpStatus.CREATED);
     }
 
-//    @GetMapping("car")
-//    public ResponseEntity<List<CarDto>> getCars(){
-//        return new ResponseEntity<>(listingCarService.getAllCar(), HttpStatus.OK);
-//    }
+
 //
 //    @GetMapping("car/set")
 //    public ResponseEntity<Set<CarDto>> getAllCarSet(){

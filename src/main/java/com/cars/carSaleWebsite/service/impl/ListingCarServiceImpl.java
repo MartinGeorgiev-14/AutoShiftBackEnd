@@ -3,6 +3,7 @@ package com.cars.carSaleWebsite.service.impl;
 import com.cars.carSaleWebsite.dto.ListingCarDto;
 import com.cars.carSaleWebsite.dto.ListingImageDto;
 import com.cars.carSaleWebsite.dto.UserEntityDto;
+import com.cars.carSaleWebsite.exceptions.NotFoundException;
 import com.cars.carSaleWebsite.mappers.ListingCarMapper;
 import com.cars.carSaleWebsite.mappers.ListingImageMapper;
 import com.cars.carSaleWebsite.mappers.UserEntityMapper;
@@ -25,8 +26,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ListingCarServiceImpl implements ListingCarService {
@@ -79,21 +80,20 @@ public class ListingCarServiceImpl implements ListingCarService {
 
     @Override
     @Transactional
-    public String createCarListing(ListingCarDto car, List<MultipartFile> images) throws IOException {
+    public String createCarListing(ListingCarDto car,  String userId,  List<MultipartFile> images) throws IOException {
 
-        try {
-            UserEntity user = userEntityRepository.findById(car.getUser().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
-            Model model = modelRepository.findByModelName(car.getModel()).orElseThrow(() -> new RuntimeException("Model not found"));
-            Engine engine = engineRepository.findEngineByType(car.getEngine()).orElseThrow(() -> new RuntimeException("Engine not found"));
-            Gearbox gearbox = gearboxRepository.findGearboxByType(car.getGearbox()).orElseThrow(() -> new RuntimeException("Gearbox not found"));
-            Body body = bodyRepository.findByBodyType(car.getBody()).orElseThrow(() -> new RuntimeException("Body not found"));
+            UserEntity user = userEntityRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new NotFoundException("User was not found"));
+            Model model = modelRepository.findByModelName(car.getModel()).orElseThrow(() -> new NotFoundException("Model not found"));
+            Engine engine = engineRepository.findEngineByType(car.getEngine()).orElseThrow(() -> new NotFoundException("Engine not found"));
+            Gearbox gearbox = gearboxRepository.findGearboxByType(car.getGearbox()).orElseThrow(() -> new NotFoundException("Gearbox not found"));
+            Body body = bodyRepository.findByBodyType(car.getBody()).orElseThrow(() -> new NotFoundException("Body not found"));
 
             ListingVehicle newListing = listingCarMapper.toEntity(car, user, model, engine, gearbox, body);
 
             listingCarRepository.save(newListing);
 
             if (!images.isEmpty()) {
-                for (int i = 0; i <= images.size(); i++) {
+                for (int i = 0; i < images.size(); i++) {
                     ListingImage listImage = new ListingImage();
 
                     listImage.setType(images.get(i).getContentType());
@@ -111,9 +111,25 @@ public class ListingCarServiceImpl implements ListingCarService {
                 }
             }
             return "The car has been saved successfully!";
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+
+    }
+
+    @Override
+    public HashSet<ListingCarDto> getAllCars() {
+       HashSet<ListingVehicle> cars = listingCarRepository.getAllCars();
+
+       HashSet<ListingCarDto> mapped = (HashSet<ListingCarDto>) cars.stream().map(c -> {
+           UserEntity user = userEntityRepository.findById(c.getUserEntity().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
+           UserEntityDto mappedUser = userEntityMapper.toDTO(user);
+           List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(c);
+
+           ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser, images);
+
+           return mappedListing;
+
+       }).collect(Collectors.toSet());
+
+       return mapped;
     }
 
 
