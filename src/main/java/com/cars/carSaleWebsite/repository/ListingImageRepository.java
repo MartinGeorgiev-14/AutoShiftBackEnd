@@ -16,5 +16,7 @@ public interface ListingImageRepository extends JpaRepository<ListingImage, UUID
 
     @Query("SELECT i FROM ListingImage i")
     HashSet<ListingImage> findAllImages();
+
+
 }
 

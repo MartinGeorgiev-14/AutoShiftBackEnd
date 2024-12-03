@@ -5,10 +5,7 @@ import com.cars.carSaleWebsite.dto.ListingImageDto;
 import com.cars.carSaleWebsite.dto.UserEntityDto;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
-import com.cars.carSaleWebsite.models.entities.vehicle.Body;
-import com.cars.carSaleWebsite.models.entities.vehicle.Engine;
-import com.cars.carSaleWebsite.models.entities.vehicle.Gearbox;
-import com.cars.carSaleWebsite.models.entities.vehicle.Model;
+import com.cars.carSaleWebsite.models.entities.vehicle.*;
 import com.cars.carSaleWebsite.repository.UserEntityRepository;
 import com.cars.carSaleWebsite.service.ListingCarService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -49,12 +46,14 @@ public class ListingCarMapper {
         car.setCreatedAt(vehicle.getCreatedAt());
         car.setEditedAt(vehicle.getEditedAt());
         car.setUser(mappedUser);
+        car.setRegion(vehicle.getLocation().getRegion().getRegion());
+        car.setLocation(vehicle.getLocation().getLocation());
 
         return car;
 
     }
 
-    public ListingVehicle toEntity(ListingCarDto car, UserEntity user, Model model, Engine engine, Gearbox gearbox, Body body){
+    public ListingVehicle toEntity(ListingCarDto car, UserEntity user, Model model, Engine engine, Gearbox gearbox, Body body, Location location){
         ListingVehicle newCar = new ListingVehicle();
 
         newCar.setPrice(car.getPrice());
@@ -68,6 +67,7 @@ public class ListingCarMapper {
         newCar.setGearbox(gearbox);
         newCar.setBody(body);
         newCar.setUserEntity(user);
+        newCar.setLocation(location);
 
         return newCar;
     }

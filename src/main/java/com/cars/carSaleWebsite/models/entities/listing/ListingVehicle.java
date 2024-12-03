@@ -18,10 +18,6 @@ public class ListingVehicle {
     @GeneratedValue
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "model_id")
-    private Model model;
-
     private BigDecimal price;
     private Date createdAt;
     private Date editedAt;
@@ -31,6 +27,10 @@ public class ListingVehicle {
     private String description;
     @Column(nullable = false)
     private Integer engineDisplacement;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "model_id")
+    private Model model;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "engine_id", nullable = false)
@@ -48,4 +48,7 @@ public class ListingVehicle {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity userEntity;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id")
+    private Location location;
 }

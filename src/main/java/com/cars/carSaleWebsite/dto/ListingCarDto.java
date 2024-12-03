@@ -30,6 +30,8 @@ public class ListingCarDto
 
     private String type;
     private String body;
+    private String location;
+    private String region;
 
     private UserEntityDto user;
 

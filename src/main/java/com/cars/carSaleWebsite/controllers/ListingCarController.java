@@ -39,12 +39,21 @@ public class ListingCarController {
         return new ResponseEntity<>(car, HttpStatus.OK);
     }
 
+    @GetMapping("car/page")
+    public ResponseEntity<CarPaginationResponse> getCarsByPage(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize){
+
+        return new ResponseEntity<>(listingCarService.getByPage(pageNo, pageSize), HttpStatus.OK);
+    }
     @PostMapping(path = "car/create", consumes = {"multipart/form-data"})
     public ResponseEntity<String> postCar(@ModelAttribute ListingCarDto car,
                                           @RequestPart("uploadImages") List<MultipartFile> images,
                                           @RequestParam("userId") String user) throws IOException {
         return new ResponseEntity<>(listingCarService.createCarListing(car, user, images), HttpStatus.CREATED);
     }
+
+
 
 
 //

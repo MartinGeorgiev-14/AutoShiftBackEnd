@@ -1,5 +1,6 @@
 package com.cars.carSaleWebsite.service.impl;
 
+import com.cars.carSaleWebsite.dto.CarPaginationResponse;
 import com.cars.carSaleWebsite.dto.ListingCarDto;
 import com.cars.carSaleWebsite.dto.ListingImageDto;
 import com.cars.carSaleWebsite.dto.UserEntityDto;
@@ -10,19 +11,20 @@ import com.cars.carSaleWebsite.mappers.UserEntityMapper;
 import com.cars.carSaleWebsite.models.entities.listing.ListingImage;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
-import com.cars.carSaleWebsite.models.entities.vehicle.Body;
-import com.cars.carSaleWebsite.models.entities.vehicle.Engine;
-import com.cars.carSaleWebsite.models.entities.vehicle.Gearbox;
-import com.cars.carSaleWebsite.models.entities.vehicle.Model;
+import com.cars.carSaleWebsite.models.entities.vehicle.*;
 import com.cars.carSaleWebsite.repository.*;
 import com.cars.carSaleWebsite.service.ListingCarService;
 import com.cars.carSaleWebsite.service.ListingImageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.smartcardio.CardPermission;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -43,6 +45,7 @@ public class ListingCarServiceImpl implements ListingCarService {
    private EngineRepository engineRepository;
    private GearboxRepository gearboxRepository;
    private BodyRepository bodyRepository;
+   private LocationRepository locationRepository;
 
     @Autowired
     public ListingCarServiceImpl(ListingCarRepository listingCarRepository, UserEntityRepository userEntityRepository,
@@ -50,7 +53,7 @@ public class ListingCarServiceImpl implements ListingCarService {
                                  UserEntityMapper userEntityMapper, ListingImageMapper listingImageMapper,
                                  ListingImageService listingImageService, ModelRepository modelRepository,
                                  EngineRepository engineRepository, GearboxRepository gearboxRepository,
-                                 BodyRepository bodyRepository) {
+                                 BodyRepository bodyRepository, LocationRepository locationRepository) {
         this.listingCarRepository = listingCarRepository;
         this.userEntityRepository = userEntityRepository;
         this.listingCarMapper = listingCarMapper;
@@ -62,6 +65,7 @@ public class ListingCarServiceImpl implements ListingCarService {
         this.engineRepository = engineRepository;
         this.gearboxRepository = gearboxRepository;
         this.bodyRepository = bodyRepository;
+        this.locationRepository = locationRepository;
     }
 
     @Override
@@ -87,12 +91,13 @@ public class ListingCarServiceImpl implements ListingCarService {
             Engine engine = engineRepository.findEngineByType(car.getEngine()).orElseThrow(() -> new NotFoundException("Engine not found"));
             Gearbox gearbox = gearboxRepository.findGearboxByType(car.getGearbox()).orElseThrow(() -> new NotFoundException("Gearbox not found"));
             Body body = bodyRepository.findByBodyType(car.getBody()).orElseThrow(() -> new NotFoundException("Body not found"));
+            Location location = locationRepository.findByRegion(car.getLocation()).orElseThrow(() -> new NotFoundException("Location is not found"));
 
-            ListingVehicle newListing = listingCarMapper.toEntity(car, user, model, engine, gearbox, body);
+            ListingVehicle newListing = listingCarMapper.toEntity(car, user, model, engine, gearbox, body, location);
 
             listingCarRepository.save(newListing);
 
-            if (!images.isEmpty()) {
+            if (!(images.getFirst().isEmpty())) {
                 for (int i = 0; i < images.size(); i++) {
                     ListingImage listImage = new ListingImage();
 
@@ -111,7 +116,6 @@ public class ListingCarServiceImpl implements ListingCarService {
                 }
             }
             return "The car has been saved successfully!";
-
     }
 
     @Override
@@ -130,6 +134,39 @@ public class ListingCarServiceImpl implements ListingCarService {
        }).collect(Collectors.toSet());
 
        return mapped;
+    }
+
+    @Override
+    public CarPaginationResponse getByPage(int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<ListingVehicle> cars = listingCarRepository.findAll(pageable);
+        List<ListingVehicle> listOfCar = cars.getContent();
+        HashSet<ListingCarDto> content = (HashSet<ListingCarDto>) listOfCar.stream().map(c -> {
+            UserEntity user = userEntityRepository.findById(c.getUserEntity().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
+            UserEntityDto mappedUser = userEntityMapper.toDTO(user);
+            List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(c);
+
+            ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser, images);
+
+            return mappedListing;
+        }).collect(Collectors.toSet());
+
+        CarPaginationResponse carPaginationResponse = new CarPaginationResponse();
+        carPaginationResponse.setContent(content);
+        carPaginationResponse.setPageNo(cars.getNumber());
+        carPaginationResponse.setPageSize(cars.getSize());
+        carPaginationResponse.setTotalPages(cars.getTotalPages());
+        carPaginationResponse.setTotalElements(cars.getTotalElements());
+        carPaginationResponse.setFirst(cars.isFirst());
+        carPaginationResponse.setLast(cars.isLast());
+
+        return carPaginationResponse;
+    }
+
+    @Override
+    public String deleteCarById(UUID id) {
+
+        return "";
     }
 
 
