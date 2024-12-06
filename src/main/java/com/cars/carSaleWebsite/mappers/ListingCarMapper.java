@@ -45,12 +45,31 @@ public class ListingCarMapper {
         car.setPrice(vehicle.getPrice());
         car.setCreatedAt(vehicle.getCreatedAt());
         car.setEditedAt(vehicle.getEditedAt());
+        car.setEngineDisplacement(vehicle.getEngineDisplacement());
+
         car.setUser(mappedUser);
         car.setRegion(vehicle.getLocation().getRegion().getRegion());
         car.setLocation(vehicle.getLocation().getLocation());
 
         return car;
 
+    }
+
+    public ListingVehicle toEntityUpdate(ListingVehicle car, ListingCarDto carDto, Model model, Engine engine, Gearbox gearbox, Body body, Location location){
+
+        car.setPrice(carDto.getPrice());
+        car.setEditedAt(new Date());
+        car.setHorsepower(carDto.getHorsepower());
+        car.setMileage(carDto.getMileage());
+        car.setDescription(carDto.getDescription());
+        car.setEngineDisplacement(carDto.getEngineDisplacement());
+        car.setModel(model);
+        car.setEngine(engine);
+        car.setGearbox(gearbox);
+        car.setBody(body);
+        car.setLocation(location);
+
+        return car;
     }
 
     public ListingVehicle toEntity(ListingCarDto car, UserEntity user, Model model, Engine engine, Gearbox gearbox, Body body, Location location){

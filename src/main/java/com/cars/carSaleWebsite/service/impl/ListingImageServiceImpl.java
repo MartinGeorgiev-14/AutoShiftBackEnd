@@ -29,7 +29,7 @@ public class ListingImageServiceImpl implements ListingImageService {
     @Transactional(readOnly = true)
     public List<ListingImageDto> getAllImagesOfListingById(ListingVehicle id) {
         try{
-            Set<ListingImage> images = listingImageRepository.getAllListingImagesByListing(id);
+            List<ListingImage> images = listingImageRepository.getAllListingImagesByListing(id);
             List<ListingImageDto> mapped = images.stream().map(i -> mapToDto(i)).collect(Collectors.toList());
             return mapped;
         }

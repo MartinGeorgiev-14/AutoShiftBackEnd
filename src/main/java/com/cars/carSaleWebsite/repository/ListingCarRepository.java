@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ListingCarRepository extends JpaRepository<ListingVehicle, UUID> {
@@ -17,7 +18,7 @@ public interface ListingCarRepository extends JpaRepository<ListingVehicle, UUID
         "JOIN l.body b " +
         "JOIN b.type t " +
         "WHERE t.type = 'Car' AND l.id = :id")
-    ListingVehicle findCarById(@Param("id") UUID id);
+    Optional<ListingVehicle> findCarById(@Param("id") UUID id);
 
     @Query("SELECT l FROM ListingVehicle l " +
             "JOIN l.body b " +

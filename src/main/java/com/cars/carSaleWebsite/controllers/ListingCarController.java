@@ -3,6 +3,7 @@ package com.cars.carSaleWebsite.controllers;
 import com.cars.carSaleWebsite.dto.CarPaginationResponse;
 import com.cars.carSaleWebsite.dto.ListingCarDto;
 import com.cars.carSaleWebsite.service.ListingCarService;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -53,6 +54,20 @@ public class ListingCarController {
         return new ResponseEntity<>(listingCarService.createCarListing(car, user, images), HttpStatus.CREATED);
     }
 
+    @DeleteMapping("car/delete/{id}")
+    public ResponseEntity<String> deleteCarById(@PathVariable UUID id){
+        String response = listingCarService.deleteCarById(id);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PatchMapping(path = "car/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<String> updateCar(@ModelAttribute ListingCarDto car,
+                                                   @RequestPart("uploadImages") List<MultipartFile> images,
+                                                   @PathVariable UUID id) throws JsonMappingException {
+
+        return new ResponseEntity<>(listingCarService.updateCar(car, id), HttpStatus.OK);
+    }
 
 
 

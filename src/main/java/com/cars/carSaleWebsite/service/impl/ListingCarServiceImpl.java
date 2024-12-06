@@ -15,6 +15,11 @@ import com.cars.carSaleWebsite.models.entities.vehicle.*;
 import com.cars.carSaleWebsite.repository.*;
 import com.cars.carSaleWebsite.service.ListingCarService;
 import com.cars.carSaleWebsite.service.ListingImageService;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,10 +29,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.smartcardio.CardPermission;
+import java.beans.PropertyDescriptor;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -46,6 +53,7 @@ public class ListingCarServiceImpl implements ListingCarService {
    private GearboxRepository gearboxRepository;
    private BodyRepository bodyRepository;
    private LocationRepository locationRepository;
+   private ObjectMapper objectMapper;
 
     @Autowired
     public ListingCarServiceImpl(ListingCarRepository listingCarRepository, UserEntityRepository userEntityRepository,
@@ -53,7 +61,8 @@ public class ListingCarServiceImpl implements ListingCarService {
                                  UserEntityMapper userEntityMapper, ListingImageMapper listingImageMapper,
                                  ListingImageService listingImageService, ModelRepository modelRepository,
                                  EngineRepository engineRepository, GearboxRepository gearboxRepository,
-                                 BodyRepository bodyRepository, LocationRepository locationRepository) {
+                                 BodyRepository bodyRepository, LocationRepository locationRepository,
+                                 ObjectMapper objectMapper) {
         this.listingCarRepository = listingCarRepository;
         this.userEntityRepository = userEntityRepository;
         this.listingCarMapper = listingCarMapper;
@@ -66,13 +75,14 @@ public class ListingCarServiceImpl implements ListingCarService {
         this.gearboxRepository = gearboxRepository;
         this.bodyRepository = bodyRepository;
         this.locationRepository = locationRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     @Transactional
     public ListingCarDto getCarById(UUID id) {
 
-        ListingVehicle car = listingCarRepository.findCarById(id);
+        ListingVehicle car = listingCarRepository.findCarById(id).orElseThrow(() -> new NotFoundException("Listing was not found"));
         UserEntity user = userEntityRepository.findById(car.getUserEntity().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
         UserEntityDto mappedUser = userEntityMapper.toDTO(user);
         List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(car);
@@ -164,11 +174,88 @@ public class ListingCarServiceImpl implements ListingCarService {
     }
 
     @Override
+    @Transactional
     public String deleteCarById(UUID id) {
 
-        return "";
+        ListingVehicle car = listingCarRepository.findCarById(id).orElseThrow(() -> new NotFoundException("Listing was not found"));
+        listingImageRepository.deleteListingById(car);
+        listingCarRepository.deleteById(car.getId());
+
+        return "Listing has been deleted successfully";
     }
 
+    @Override
+    @Transactional
+    public String updateCar(ListingCarDto carDto ,UUID id) throws JsonMappingException {
+        ListingVehicle nowcar = listingCarRepository.findCarById(id).orElseThrow(() -> new NotFoundException("Car was not found"));
+
+        UserEntity user = userEntityRepository.findById(UUID.fromString(nowcar.getUserEntity().getId().toString())).orElseThrow(() -> new NotFoundException("User was not found"));
+        Optional<Model> model = modelRepository.findByModelName(carDto.getModel());
+        Optional<Engine> engine = engineRepository.findEngineByType(carDto.getEngine());
+        Optional<Gearbox> gearbox = gearboxRepository.findGearboxByType(carDto.getGearbox());
+        Optional<Body> body = bodyRepository.findByBodyType(carDto.getBody());
+        Optional<Location> location = locationRepository.findByRegion(carDto.getLocation());
+
+        ListingVehicle newcar = listingCarMapper.toEntity(carDto, user, model.orElse(null), engine.orElse(null), gearbox.orElse(null), body.orElse(null), location.orElse(null));
+        newcar.setId(nowcar.getId());
+
+        patch(nowcar, newcar);
+
+        listingCarRepository.save(nowcar);
+
+        List<ListingImage> images = listingImageRepository.getAllListingImagesByListing(newcar);
+
+
+        if(carDto.getMainImgId() != null){
+            for (ListingImage image : images){
+                if (image.getId().equals(carDto.getMainImgId())){
+                    image.setMain(true);
+                }
+                else{
+                    image.setMain(false);
+                }
+
+                listingImageRepository.save(image);
+            }
+        }
+
+
+
+//        if(carDto.getMainImgIndex() >= 0 && images.size() >= carDto.getMainImgIndex()){
+//            for (int i = 0; i < images.size(); i++){
+//                ListingImage image = listingImageRepository.getReferenceById(images.get(i).getId());
+//
+//                if(i == carDto.getMainImgIndex()){
+//                    image.setMain(true);
+//                }
+//                else{
+//                    image.setMain(false);
+//                }
+//
+//
+//                listingImageRepository.save(image);
+//            }
+//        }
+
+
+
+        return "Listing has been updated";
+    }
+
+    private void patch(ListingVehicle oldInstance, ListingVehicle newInstance) {
+        Field[] fields = oldInstance.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true); // Enable access to private fields
+            try {
+                Object newValue = field.get(newInstance);
+                if (newValue != null) {
+                    field.set(oldInstance, newValue); // Update the old instance
+                }
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("Failed to patch field: " + field.getName(), e);
+            }
+        }
+    }
 
     private String getImageTypeFromFileName(String fileName) {
         int index = fileName.lastIndexOf('.');

@@ -21,8 +21,8 @@ public class ListingVehicle {
     private BigDecimal price;
     private Date createdAt;
     private Date editedAt;
-    private int horsepower;
-    private int mileage;
+    private Integer horsepower;
+    private Integer mileage;
 
     private String description;
     @Column(nullable = false)

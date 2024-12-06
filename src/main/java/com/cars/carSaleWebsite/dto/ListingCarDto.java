@@ -19,13 +19,14 @@ public class ListingCarDto
     private BigDecimal price;
     private Date createdAt;
     private Date editedAt;
-    private int horsepower;
-    private int mileage;
+    private Integer horsepower;
+    private Integer mileage;
     private String description;
     private String engine;
     private String gearbox;
     private Integer engineDisplacement;
-    private int mainImgIndex;
+    private Integer mainImgIndex;
+    private UUID mainImgId;
     private List<ListingImageDto> images;
 
     private String type;

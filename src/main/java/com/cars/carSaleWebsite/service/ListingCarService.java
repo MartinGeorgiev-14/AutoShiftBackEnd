@@ -2,6 +2,7 @@ package com.cars.carSaleWebsite.service;
 
 import com.cars.carSaleWebsite.dto.CarPaginationResponse;
 import com.cars.carSaleWebsite.dto.ListingCarDto;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,4 +17,5 @@ public interface ListingCarService {
     HashSet<ListingCarDto> getAllCars();
     CarPaginationResponse getByPage(int pageNo, int pageSize);
     String deleteCarById(UUID id);
+    String updateCar(ListingCarDto carDto, UUID id) throws JsonMappingException;
 }
