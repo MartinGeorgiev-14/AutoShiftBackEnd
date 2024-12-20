@@ -61,10 +61,8 @@ public class ListingCarController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PatchMapping(path = "car/{id}", consumes = {"multipart/form-data"})
-    public ResponseEntity<String> updateCar(@ModelAttribute ListingCarDto car,
-                                                   @RequestPart("uploadImages") List<MultipartFile> images,
-                                                   @PathVariable UUID id) throws JsonMappingException {
+    @PatchMapping(path = "car/{id}")
+    public ResponseEntity<String> updateCar(@RequestBody ListingCarDto car, @PathVariable UUID id) throws IOException {
 
         return new ResponseEntity<>(listingCarService.updateCar(car, id), HttpStatus.OK);
     }

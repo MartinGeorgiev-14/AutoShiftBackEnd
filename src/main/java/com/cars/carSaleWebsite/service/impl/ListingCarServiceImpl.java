@@ -186,9 +186,11 @@ public class ListingCarServiceImpl implements ListingCarService {
 
     @Override
     @Transactional
-    public String updateCar(ListingCarDto carDto ,UUID id) throws JsonMappingException {
+    public String updateCar(ListingCarDto carDto ,UUID id) throws IOException {
+        //, List<MultipartFile> images
         ListingVehicle nowcar = listingCarRepository.findCarById(id).orElseThrow(() -> new NotFoundException("Car was not found"));
 
+        //Modifying listing
         UserEntity user = userEntityRepository.findById(UUID.fromString(nowcar.getUserEntity().getId().toString())).orElseThrow(() -> new NotFoundException("User was not found"));
         Optional<Model> model = modelRepository.findByModelName(carDto.getModel());
         Optional<Engine> engine = engineRepository.findEngineByType(carDto.getEngine());
@@ -203,23 +205,66 @@ public class ListingCarServiceImpl implements ListingCarService {
 
         listingCarRepository.save(nowcar);
 
-        List<ListingImage> images = listingImageRepository.getAllListingImagesByListing(newcar);
+        //Modifying images
+        List<ListingImage> imagesDb = listingImageRepository.getAllListingImagesByListing(newcar);
+        ListingImage newMainImg = listingImageRepository.getReferenceById(carDto.getMainImgId());
 
+        if (imagesDb.contains(newMainImg)){
+            for (ListingImage image : imagesDb){
+                image.setMain(false);
 
-        if(carDto.getMainImgId() != null){
-            for (ListingImage image : images){
-                if (image.getId().equals(carDto.getMainImgId())){
+                if (image.equals(newMainImg)){
                     image.setMain(true);
                 }
-                else{
-                    image.setMain(false);
-                }
-
-                listingImageRepository.save(image);
             }
         }
 
 
+//
+//        if (!(images.getFirst().isEmpty())) {
+//            for (MultipartFile image : images) {
+//                ListingImage listImage = new ListingImage();
+//                Boolean isFound = false;
+//
+//                if(imagesDb.size() > 8){
+//                    break;
+//                }
+//
+//                for(ListingImage dbImage : imagesDb){
+//
+//                    if(image.getBytes().equals(dbImage.getImageData())){
+//                        isFound = true;
+//                    }
+//                    //tuka trqbva do pravish problema
+//
+//                }
+//
+//                if(isFound){
+//                    listImage.setType(image.getContentType());
+//                    listImage.setImageData(image.getBytes());
+//                    listImage.setListingId(nowcar);
+//                    listingImageRepository.save(listImage);
+//                }
+//            }
+//        }
+//
+//        imagesDb = listingImageRepository.getAllListingImagesByListing(newcar);
+//
+//        if(carDto.getMainImgId() != null){
+//            for (ListingImage image : imagesDb){
+//                if (image.getId().equals(carDto.getMainImgId()) && nowcar.getId() == id){
+//                    image.setMain(true);
+//                }
+//                else{
+//                    image.setMain(false);
+//                }
+//
+//                listingImageRepository.save(image);
+//            }
+//        }
+//
+
+        //doesnt work
 
 //        if(carDto.getMainImgIndex() >= 0 && images.size() >= carDto.getMainImgIndex()){
 //            for (int i = 0; i < images.size(); i++){

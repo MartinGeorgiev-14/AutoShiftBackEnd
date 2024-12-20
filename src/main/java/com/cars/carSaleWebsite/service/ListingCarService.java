@@ -17,5 +17,5 @@ public interface ListingCarService {
     HashSet<ListingCarDto> getAllCars();
     CarPaginationResponse getByPage(int pageNo, int pageSize);
     String deleteCarById(UUID id);
-    String updateCar(ListingCarDto carDto, UUID id) throws JsonMappingException;
+    String updateCar(ListingCarDto carDto, UUID id) throws IOException;
 }
