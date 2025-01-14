@@ -1,17 +1,23 @@
 package com.cars.carSaleWebsite.controllers;
 
 import com.cars.carSaleWebsite.dto.CarPaginationResponse;
+import com.cars.carSaleWebsite.dto.FilterDto;
 import com.cars.carSaleWebsite.dto.ListingCarDto;
+import com.cars.carSaleWebsite.dto.SearchDto;
 import com.cars.carSaleWebsite.service.ListingCarService;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.print.Pageable;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,6 +53,20 @@ public class ListingCarController {
 
         return new ResponseEntity<>(listingCarService.getByPage(pageNo, pageSize), HttpStatus.OK);
     }
+
+    @GetMapping("car/search")
+    public ResponseEntity<CarPaginationResponse> getListings(
+            @RequestBody(required = false) FilterDto filterDto,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+
+
+        return new ResponseEntity<>(listingCarService.searchCarByCriteria(filterDto, page, size), HttpStatus.OK);
+
+
+    }
+
     @PostMapping(path = "car/create", consumes = {"multipart/form-data"})
     public ResponseEntity<String> postCar(@ModelAttribute ListingCarDto car,
                                           @RequestPart("uploadImages") List<MultipartFile> images,

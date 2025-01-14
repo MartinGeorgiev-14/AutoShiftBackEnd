@@ -1,0 +1,21 @@
+package com.cars.carSaleWebsite.dto;
+
+import lombok.Data;
+
+import java.math.BigDecimal;
+import java.util.Date;
+
+@Data
+public class SearchDto {
+    private String make;
+    private String model;
+    private String region;
+    private String location;
+    private String engine;
+    private String gearbox;
+    private String getBody;
+    private Date startYear;
+    private Date endYear;
+    private BigDecimal startPrice;
+    private BigDecimal endPrice;
+}

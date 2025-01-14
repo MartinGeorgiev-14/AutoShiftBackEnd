@@ -1,10 +1,9 @@
 package com.cars.carSaleWebsite.service.impl;
 
-import com.cars.carSaleWebsite.dto.CarPaginationResponse;
-import com.cars.carSaleWebsite.dto.ListingCarDto;
-import com.cars.carSaleWebsite.dto.ListingImageDto;
-import com.cars.carSaleWebsite.dto.UserEntityDto;
+import com.cars.carSaleWebsite.dto.*;
 import com.cars.carSaleWebsite.exceptions.NotFoundException;
+import com.cars.carSaleWebsite.helpers.ListingSpecification;
+import com.cars.carSaleWebsite.mappers.FilterMapper;
 import com.cars.carSaleWebsite.mappers.ListingCarMapper;
 import com.cars.carSaleWebsite.mappers.ListingImageMapper;
 import com.cars.carSaleWebsite.mappers.UserEntityMapper;
@@ -24,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Filter;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,6 +55,7 @@ public class ListingCarServiceImpl implements ListingCarService {
    private BodyRepository bodyRepository;
    private LocationRepository locationRepository;
    private ObjectMapper objectMapper;
+   private FilterMapper filterMapper;
 
     @Autowired
     public ListingCarServiceImpl(ListingCarRepository listingCarRepository, UserEntityRepository userEntityRepository,
@@ -62,7 +64,7 @@ public class ListingCarServiceImpl implements ListingCarService {
                                  ListingImageService listingImageService, ModelRepository modelRepository,
                                  EngineRepository engineRepository, GearboxRepository gearboxRepository,
                                  BodyRepository bodyRepository, LocationRepository locationRepository,
-                                 ObjectMapper objectMapper) {
+                                 ObjectMapper objectMapper, FilterMapper filterMapper) {
         this.listingCarRepository = listingCarRepository;
         this.userEntityRepository = userEntityRepository;
         this.listingCarMapper = listingCarMapper;
@@ -76,6 +78,7 @@ public class ListingCarServiceImpl implements ListingCarService {
         this.bodyRepository = bodyRepository;
         this.locationRepository = locationRepository;
         this.objectMapper = objectMapper;
+        this.filterMapper = filterMapper;
     }
 
     @Override
@@ -285,6 +288,39 @@ public class ListingCarServiceImpl implements ListingCarService {
 
 
         return "Listing has been updated";
+    }
+
+    @Transactional
+    @Override
+    public CarPaginationResponse searchCarByCriteria(FilterDto filterDto, int pageNo, int pageSize) {
+
+        PageRequest pageRequest = PageRequest.of(pageNo, pageSize, Sort.by(new Sort.Order(Sort.Direction.ASC, "price")));
+
+        Page<ListingVehicle> listings = listingCarRepository.findAll(
+                ListingSpecification.withFilters(filterDto),
+                pageRequest);
+
+        HashSet<ListingCarDto> content = (HashSet<ListingCarDto>) listings.stream().map(c -> {
+            UserEntity user = userEntityRepository.findById(c.getUserEntity().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
+            UserEntityDto mappedUser = userEntityMapper.toDTO(user);
+            List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(c);
+
+            ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser, images);
+
+            return mappedListing;
+        }).collect(Collectors.toSet());
+
+
+        CarPaginationResponse response = new CarPaginationResponse();
+        response.setContent(content);
+        response.setPageNo(listings.getNumber());
+        response.setPageSize(listings.getSize());
+        response.setTotalPages(listings.getTotalPages());
+        response.setTotalElements(listings.getTotalElements());
+        response.setFirst(listings.isFirst());
+        response.setLast(listings.isLast());
+
+        return response;
     }
 
     private void patch(ListingVehicle oldInstance, ListingVehicle newInstance) {

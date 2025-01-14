@@ -1,8 +1,11 @@
 package com.cars.carSaleWebsite.service;
 
 import com.cars.carSaleWebsite.dto.CarPaginationResponse;
+import com.cars.carSaleWebsite.dto.FilterDto;
 import com.cars.carSaleWebsite.dto.ListingCarDto;
+import com.cars.carSaleWebsite.dto.SearchDto;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,4 +21,5 @@ public interface ListingCarService {
     CarPaginationResponse getByPage(int pageNo, int pageSize);
     String deleteCarById(UUID id);
     String updateCar(ListingCarDto carDto, UUID id) throws IOException;
+    CarPaginationResponse searchCarByCriteria(FilterDto searchDto, int pageNo, int pageSize);
 }
