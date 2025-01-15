@@ -1,6 +1,7 @@
 package com.cars.carSaleWebsite.service.impl;
 
 import com.cars.carSaleWebsite.dto.*;
+import com.cars.carSaleWebsite.dto.FormOptionsDto;
 import com.cars.carSaleWebsite.exceptions.NotFoundException;
 import com.cars.carSaleWebsite.helpers.ListingSpecification;
 import com.cars.carSaleWebsite.mappers.FilterMapper;
@@ -22,8 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,21 +42,24 @@ import java.util.stream.Collectors;
 @Service("listingCarService")
 public class ListingCarServiceImpl implements ListingCarService {
 
-   private ListingCarRepository listingCarRepository;
-   private UserEntityRepository userEntityRepository;
-   private ListingCarMapper listingCarMapper;
-   private ListingImageRepository listingImageRepository;
-   private UserEntityMapper userEntityMapper;
-   private ListingImageMapper listingImageMapper;
-   private ListingImageService listingImageService;
-   private ModelRepository modelRepository;
-   private EngineRepository engineRepository;
-   private GearboxRepository gearboxRepository;
-   private BodyRepository bodyRepository;
-   private LocationRepository locationRepository;
-   private ObjectMapper objectMapper;
-   private FilterMapper filterMapper;
-   private JWTGenerator jwtGenerator;
+   private final ListingCarRepository listingCarRepository;
+   private final UserEntityRepository userEntityRepository;
+   private final ListingCarMapper listingCarMapper;
+   private final ListingImageRepository listingImageRepository;
+   private final UserEntityMapper userEntityMapper;
+   private final ListingImageMapper listingImageMapper;
+   private final ListingImageService listingImageService;
+   private final ModelRepository modelRepository;
+   private final EngineRepository engineRepository;
+   private final GearboxRepository gearboxRepository;
+   private final BodyRepository bodyRepository;
+   private final LocationRepository locationRepository;
+   private final ObjectMapper objectMapper;
+   private final FilterMapper filterMapper;
+   private final JWTGenerator jwtGenerator;
+   private final TypeRepository typeRepository;
+   private final MakeRepository makeRepository;
+   private final RegionRepository regionRepository;
 
     @Autowired
     public ListingCarServiceImpl(ListingCarRepository listingCarRepository, UserEntityRepository userEntityRepository,
@@ -67,7 +69,8 @@ public class ListingCarServiceImpl implements ListingCarService {
                                  EngineRepository engineRepository, GearboxRepository gearboxRepository,
                                  BodyRepository bodyRepository, LocationRepository locationRepository,
                                  ObjectMapper objectMapper, FilterMapper filterMapper,
-                                 JWTGenerator jwtGenerator) {
+                                 JWTGenerator jwtGenerator, TypeRepository typeRepository,
+                                 MakeRepository makeRepository, RegionRepository regionRepository) {
         this.listingCarRepository = listingCarRepository;
         this.userEntityRepository = userEntityRepository;
         this.listingCarMapper = listingCarMapper;
@@ -83,6 +86,9 @@ public class ListingCarServiceImpl implements ListingCarService {
         this.objectMapper = objectMapper;
         this.filterMapper = filterMapper;
         this.jwtGenerator = jwtGenerator;
+        this.typeRepository = typeRepository;
+        this.makeRepository = makeRepository;
+        this.regionRepository = regionRepository;
     }
 
     @Override
@@ -338,6 +344,37 @@ public class ListingCarServiceImpl implements ListingCarService {
         return listingCarRepository.findCarById(UUID.fromString(listingId))
                 .map(l -> l.getUserEntity().getId().equals(userId)).orElse(false);
 
+    }
+
+    @Override
+    public FormOptionsDto getAllFormOptions() {
+        FormOptionsDto options = new FormOptionsDto();
+
+        HashSet<Engine> engines = engineRepository.getAll();
+        HashSet<Gearbox> gearboxes = gearboxRepository.getAll();
+
+        HashSet<Type> types = typeRepository.getAll();
+        HashSet<Body> bodies = bodyRepository.getAll();
+
+        HashSet<Make> makes = makeRepository.getAll();
+        HashSet<Model> models = modelRepository.getALl();
+
+        HashSet<Region> regions = regionRepository.getAll();
+        HashSet<Location> locations = locationRepository.getAll();
+
+        options.setEngineOptions(engines);
+        options.setGearboxOptions(gearboxes);
+
+        options.setTypeOptions(types);
+        options.setBodyOptions(bodies);
+
+        options.setMakeOptions(makes);
+        options.setModelOptions(models);
+
+        options.setRegionOptions(regions);
+        options.setLocationOptions(locations);
+
+        return options;
     }
 
 

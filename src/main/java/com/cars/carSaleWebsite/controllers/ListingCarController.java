@@ -2,26 +2,19 @@ package com.cars.carSaleWebsite.controllers;
 
 import com.cars.carSaleWebsite.dto.CarPaginationResponse;
 import com.cars.carSaleWebsite.dto.FilterDto;
+import com.cars.carSaleWebsite.dto.FormOptionsDto;
 import com.cars.carSaleWebsite.dto.ListingCarDto;
-import com.cars.carSaleWebsite.dto.SearchDto;
 import com.cars.carSaleWebsite.service.ListingCarService;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.awt.print.Pageable;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -45,6 +38,14 @@ public class ListingCarController {
         ListingCarDto car = listingCarService.getCarById(id);
 
         return new ResponseEntity<>(car, HttpStatus.OK);
+    }
+
+    @GetMapping("car/options")
+    public ResponseEntity<FormOptionsDto> getFormOptions(){
+
+        FormOptionsDto options = listingCarService.getAllFormOptions();
+
+        return new ResponseEntity<>(options, HttpStatus.OK);
     }
 
     @GetMapping("car/page")
