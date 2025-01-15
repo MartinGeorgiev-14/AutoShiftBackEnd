@@ -12,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -69,22 +70,23 @@ public class ListingCarController {
 
     @PostMapping(path = "car/create", consumes = {"multipart/form-data"})
     public ResponseEntity<String> postCar(@ModelAttribute ListingCarDto car,
-                                          @RequestPart("uploadImages") List<MultipartFile> images,
-                                          @RequestParam("userId") String user) throws IOException {
-        return new ResponseEntity<>(listingCarService.createCarListing(car, user, images), HttpStatus.CREATED);
+                                          @RequestPart("uploadImages") List<MultipartFile> images) throws IOException {
+        return new ResponseEntity<>(listingCarService.createCarListing(car, images), HttpStatus.CREATED);
     }
 
-    @DeleteMapping("car/delete/{id}")
-    public ResponseEntity<String> deleteCarById(@PathVariable UUID id){
-        String response = listingCarService.deleteCarById(id);
+    @PreAuthorize("hasRole('ADMIN') or @listingCarService.canAccessListing(#listingId)")
+    @DeleteMapping("car/delete/{listingId}")
+    public ResponseEntity<String> deleteCarById(@PathVariable UUID listingId){
+        String response = listingCarService.deleteCarById(listingId);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PatchMapping(path = "car/{id}")
-    public ResponseEntity<String> updateCar(@RequestBody ListingCarDto car, @PathVariable UUID id) throws IOException {
+    @PreAuthorize("hasRole('ADMIN') or @listingCarService.canAccessListing(#listingId)")
+    @PatchMapping(path = "car/update/{listingId}")
+    public ResponseEntity<String> updateCar(@RequestBody ListingCarDto car, @PathVariable UUID listingId) throws IOException {
 
-        return new ResponseEntity<>(listingCarService.updateCar(car, id), HttpStatus.OK);
+        return new ResponseEntity<>(listingCarService.updateCar(car, listingId), HttpStatus.OK);
     }
 
 

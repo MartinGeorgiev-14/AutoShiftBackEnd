@@ -47,21 +47,16 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth
                                 // Public endpoints
-                                .requestMatchers(
-                                        "/api/auth/**"
-                                ).permitAll()
+                                .requestMatchers("/api/auth/**").permitAll()
 
-//                                // Admin endpoints
-//                                .requestMatchers(HttpMethod.POST, "/api/car/**").hasRole("ADMIN")
-//                                .requestMatchers(HttpMethod.PUT, "/api/car/**").hasRole("ADMIN")
-//                                .requestMatchers(HttpMethod.DELETE, "/api/car/**").hasRole("ADMIN")
-//
-//                                // User endpoints
-//                                .requestMatchers(HttpMethod.GET, "/api/car/**").hasAnyRole( "ADMIN")
+                                //User Admin endpoints
+                                .requestMatchers(HttpMethod.POST, "/api/car/**").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.PATCH, "/api/car/**").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/car/**").hasAnyRole("USER","ADMIN")
 
                                 // Require authentication for all other endpoints
+                                .requestMatchers(HttpMethod.GET, "/api/car/**").permitAll()
                                 .anyRequest().permitAll()
-//                                .authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 

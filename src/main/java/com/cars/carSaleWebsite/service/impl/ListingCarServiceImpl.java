@@ -12,34 +12,35 @@ import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
 import com.cars.carSaleWebsite.models.entities.vehicle.*;
 import com.cars.carSaleWebsite.repository.*;
+import com.cars.carSaleWebsite.security.JWTGenerator;
 import com.cars.carSaleWebsite.service.ListingCarService;
 import com.cars.carSaleWebsite.service.ListingImageService;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeanWrapperImpl;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.logging.Filter;
 import java.util.stream.Collectors;
 
-@Service
+@Service("listingCarService")
 public class ListingCarServiceImpl implements ListingCarService {
 
    private ListingCarRepository listingCarRepository;
@@ -56,6 +57,7 @@ public class ListingCarServiceImpl implements ListingCarService {
    private LocationRepository locationRepository;
    private ObjectMapper objectMapper;
    private FilterMapper filterMapper;
+   private JWTGenerator jwtGenerator;
 
     @Autowired
     public ListingCarServiceImpl(ListingCarRepository listingCarRepository, UserEntityRepository userEntityRepository,
@@ -64,7 +66,8 @@ public class ListingCarServiceImpl implements ListingCarService {
                                  ListingImageService listingImageService, ModelRepository modelRepository,
                                  EngineRepository engineRepository, GearboxRepository gearboxRepository,
                                  BodyRepository bodyRepository, LocationRepository locationRepository,
-                                 ObjectMapper objectMapper, FilterMapper filterMapper) {
+                                 ObjectMapper objectMapper, FilterMapper filterMapper,
+                                 JWTGenerator jwtGenerator) {
         this.listingCarRepository = listingCarRepository;
         this.userEntityRepository = userEntityRepository;
         this.listingCarMapper = listingCarMapper;
@@ -79,6 +82,7 @@ public class ListingCarServiceImpl implements ListingCarService {
         this.locationRepository = locationRepository;
         this.objectMapper = objectMapper;
         this.filterMapper = filterMapper;
+        this.jwtGenerator = jwtGenerator;
     }
 
     @Override
@@ -97,7 +101,9 @@ public class ListingCarServiceImpl implements ListingCarService {
 
     @Override
     @Transactional
-    public String createCarListing(ListingCarDto car,  String userId,  List<MultipartFile> images) throws IOException {
+    public String createCarListing(ListingCarDto car, List<MultipartFile> images) throws IOException {
+
+            String userId = getCurrentUserId();
 
             UserEntity user = userEntityRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new NotFoundException("User was not found"));
             Model model = modelRepository.findByModelName(car.getModel()).orElseThrow(() -> new NotFoundException("Model not found"));
@@ -190,7 +196,6 @@ public class ListingCarServiceImpl implements ListingCarService {
     @Override
     @Transactional
     public String updateCar(ListingCarDto carDto ,UUID id) throws IOException {
-        //, List<MultipartFile> images
         ListingVehicle nowcar = listingCarRepository.findCarById(id).orElseThrow(() -> new NotFoundException("Car was not found"));
 
         //Modifying listing
@@ -210,7 +215,10 @@ public class ListingCarServiceImpl implements ListingCarService {
 
         //Modifying images
         List<ListingImage> imagesDb = listingImageRepository.getAllListingImagesByListing(newcar);
-        ListingImage newMainImg = listingImageRepository.getReferenceById(carDto.getMainImgId());
+//        ListingImage newMainImg = listingImageRepository.findById(carDto.getMainImgId()).orElse(null);
+        Optional<ListingImage> newMainImg = Optional.ofNullable(carDto.getMainImgId())
+                .flatMap(listingImageRepository::findById);
+
 
         if (imagesDb.contains(newMainImg)){
             for (ListingImage image : imagesDb){
@@ -323,6 +331,16 @@ public class ListingCarServiceImpl implements ListingCarService {
         return response;
     }
 
+    @Override
+    public boolean canAccessListing(String listingId) {
+        String userId = getCurrentUserId();
+
+        return listingCarRepository.findCarById(UUID.fromString(listingId))
+                .map(l -> l.getUserEntity().getId().equals(userId)).orElse(false);
+
+    }
+
+
     private void patch(ListingVehicle oldInstance, ListingVehicle newInstance) {
         Field[] fields = oldInstance.getClass().getDeclaredFields();
         for (Field field : fields) {
@@ -343,6 +361,22 @@ public class ListingCarServiceImpl implements ListingCarService {
         return (index > 0) ? fileName.substring(index + 1).toLowerCase() : "unknown";
     }
 
+    private String getCurrentUserId(){
+        String token = (String) getJWTFromRequest();
+        return jwtGenerator.getUserIdFromJWT(token);
+    }
+
+    private String getJWTFromRequest() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attributes != null) {
+            HttpServletRequest request = attributes.getRequest();
+            String bearerToken = request.getHeader("Authorization");
+            if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+                return bearerToken.substring(7);
+            }
+        }
+        return null;
+    }
 
 }
 
