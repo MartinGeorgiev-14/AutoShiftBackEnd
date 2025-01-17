@@ -28,19 +28,19 @@ public class ListingCarController {
         this.listingCarService = listingCarService;
     }
 
-    @GetMapping("car")
+    @GetMapping("app")
     public ResponseEntity<HashSet<ListingCarDto>> getCars(){
         return new ResponseEntity<>(listingCarService.getAllCars(), HttpStatus.OK);
     }
 
-    @GetMapping("car/{id}")
+    @GetMapping("app/{id}")
     public ResponseEntity<ListingCarDto> getCarById(@PathVariable UUID id){
         ListingCarDto car = listingCarService.getCarById(id);
 
         return new ResponseEntity<>(car, HttpStatus.OK);
     }
 
-    @GetMapping("car/options")
+    @GetMapping("app/options")
     public ResponseEntity<FormOptionsDto> getFormOptions(){
 
         FormOptionsDto options = listingCarService.getAllFormOptions();
@@ -48,7 +48,7 @@ public class ListingCarController {
         return new ResponseEntity<>(options, HttpStatus.OK);
     }
 
-    @GetMapping("car/page")
+    @GetMapping("app/page")
     public ResponseEntity<CarPaginationResponse> getCarsByPage(
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize){
@@ -56,7 +56,7 @@ public class ListingCarController {
         return new ResponseEntity<>(listingCarService.getByPage(pageNo, pageSize), HttpStatus.OK);
     }
 
-    @GetMapping("car/search")
+    @PostMapping("app/search")
     public ResponseEntity<CarPaginationResponse> getListings(
             @RequestBody(required = false) FilterDto filterDto,
             @RequestParam(defaultValue = "0") int page,
@@ -69,14 +69,14 @@ public class ListingCarController {
 
     }
 
-    @PostMapping(path = "car/create", consumes = {"multipart/form-data"})
+    @PostMapping(path = "app/create", consumes = {"multipart/form-data"})
     public ResponseEntity<String> postCar(@ModelAttribute ListingCarDto car,
                                           @RequestPart("uploadImages") List<MultipartFile> images) throws IOException {
         return new ResponseEntity<>(listingCarService.createCarListing(car, images), HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasRole('ADMIN') or @listingCarService.canAccessListing(#listingId)")
-    @DeleteMapping("car/delete/{listingId}")
+    @DeleteMapping("app/delete/{listingId}")
     public ResponseEntity<String> deleteCarById(@PathVariable UUID listingId){
         String response = listingCarService.deleteCarById(listingId);
 
@@ -84,7 +84,7 @@ public class ListingCarController {
     }
 
     @PreAuthorize("hasRole('ADMIN') or @listingCarService.canAccessListing(#listingId)")
-    @PatchMapping(path = "car/update/{listingId}")
+    @PatchMapping(path = "app/update/{listingId}")
     public ResponseEntity<String> updateCar(@RequestBody ListingCarDto car, @PathVariable UUID listingId) throws IOException {
 
         return new ResponseEntity<>(listingCarService.updateCar(car, listingId), HttpStatus.OK);

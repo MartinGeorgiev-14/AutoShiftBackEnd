@@ -13,7 +13,7 @@ public class SearchDto {
     private String location;
     private String engine;
     private String gearbox;
-    private String getBody;
+    private String body;
     private Date startYear;
     private Date endYear;
     private BigDecimal startPrice;

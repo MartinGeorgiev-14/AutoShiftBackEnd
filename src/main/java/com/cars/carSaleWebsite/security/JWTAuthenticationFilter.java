@@ -16,6 +16,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 public class JWTAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
@@ -29,6 +30,15 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         String token = getJWTFromRequest(request);
+
+//        List<String> publicEndpoints = List.of("/api/auth/**", "/api/app/**");
+//        String requestPath = request.getRequestURI();
+//
+//        if (publicEndpoints.stream().anyMatch(requestPath::startsWith)) {
+//            // Skip JWT validation for public endpoints
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
 
         if(StringUtils.hasText(token) && tokenGenerator.validateToken(token)){
             String username = tokenGenerator.getUsernameFromJWT(token);

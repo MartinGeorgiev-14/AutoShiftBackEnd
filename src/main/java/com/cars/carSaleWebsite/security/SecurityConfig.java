@@ -50,12 +50,13 @@ public class SecurityConfig {
                                 .requestMatchers("/api/auth/**").permitAll()
 
                                 //User Admin endpoints
-                                .requestMatchers(HttpMethod.POST, "/api/car/**").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers(HttpMethod.PATCH, "/api/car/**").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/car/**").hasAnyRole("USER","ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/app/create").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.PATCH, "/api/app/**").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/app/**").hasAnyRole("USER","ADMIN")
 
                                 // Require authentication for all other endpoints
-                                .requestMatchers(HttpMethod.GET, "/api/car/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/app/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/app/search").permitAll()
                                 .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
