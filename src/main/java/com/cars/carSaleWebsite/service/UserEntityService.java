@@ -1,5 +1,6 @@
 package com.cars.carSaleWebsite.service;
 
+import com.cars.carSaleWebsite.dto.AuthResponseDTO;
 import com.cars.carSaleWebsite.dto.RegisterDto;
 import com.cars.carSaleWebsite.dto.UserEntityDto;
 
@@ -11,4 +12,5 @@ public interface UserEntityService {
     Boolean existsNameByName(String name);
     Boolean isValidPassword(String password);
     String createUser(RegisterDto user) throws RoleNotFoundException;
+    AuthResponseDTO getUserInfo();
 }

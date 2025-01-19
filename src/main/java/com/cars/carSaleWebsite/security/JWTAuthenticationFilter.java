@@ -40,7 +40,13 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 //            return;
 //        }
 
-        if(StringUtils.hasText(token) && tokenGenerator.validateToken(token)){
+        if(StringUtils.hasText(token)){
+
+            if(!tokenGenerator.validateToken(token)){
+                handleAuthenticationError(response, "Invalid or expired token.");
+                return;
+            }
+
             String username = tokenGenerator.getUsernameFromJWT(token);
 
             UserDetails userDetails = customUserDetailService.loadUserByUsername(username);
@@ -59,5 +65,12 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             return bearerToken.substring(7, bearerToken.length());
         }
         return null;
+    }
+
+    private void handleAuthenticationError(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        String jsonResponse = String.format("{\"error\": \"%s\", \"code\": %d}", message, HttpServletResponse.SC_UNAUTHORIZED);
+        response.getWriter().write(jsonResponse);
     }
 }

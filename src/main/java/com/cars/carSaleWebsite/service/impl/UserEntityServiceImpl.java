@@ -1,18 +1,26 @@
 package com.cars.carSaleWebsite.service.impl;
 
+import com.cars.carSaleWebsite.dto.AuthResponseDTO;
 import com.cars.carSaleWebsite.dto.RegisterDto;
 import com.cars.carSaleWebsite.dto.UserEntityDto;
+import com.cars.carSaleWebsite.exceptions.NotFoundException;
 import com.cars.carSaleWebsite.models.entities.user.Role;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
 import com.cars.carSaleWebsite.repository.RoleRepository;
 import com.cars.carSaleWebsite.repository.UserEntityRepository;
+import com.cars.carSaleWebsite.security.JWTGenerator;
 import com.cars.carSaleWebsite.service.UserEntityService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.management.relation.RoleNotFoundException;
 import java.util.Collections;
+import java.util.UUID;
 
 @Service
 public class UserEntityServiceImpl implements UserEntityService {
@@ -20,12 +28,15 @@ public class UserEntityServiceImpl implements UserEntityService {
     private UserEntityRepository userEntityRepository;
     private PasswordEncoder passwordEncoder;
     private RoleRepository roleRepository;
+    private JWTGenerator jwtGenerator;
 
     @Autowired
-    public UserEntityServiceImpl(UserEntityRepository userEntityRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
+    public UserEntityServiceImpl(UserEntityRepository userEntityRepository, PasswordEncoder passwordEncoder,
+                                 RoleRepository roleRepository, JWTGenerator jwtGenerator) {
         this.userEntityRepository = userEntityRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
+        this.jwtGenerator = jwtGenerator;
     }
 
 
@@ -86,6 +97,30 @@ public class UserEntityServiceImpl implements UserEntityService {
         return "User was registered successfully";
     }
 
+    @Override
+    public AuthResponseDTO getUserInfo() {
+        String token = getJWTFromRequest();
+        String userId = getCurrentUserId();
+        UserEntity user = userEntityRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new NotFoundException("User was not found"));
+
+        return mapToAuth(user, token);
+    }
+
+
+    private AuthResponseDTO mapToAuth(UserEntity user, String token){
+        AuthResponseDTO response = new AuthResponseDTO();
+
+        response.setUserId(user.getId());
+        response.setPhone(user.getPhone());
+        response.setAccessToken(token);
+        response.setEmail(user.getEmail());
+        response.setFristName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        response.setUsername(user.getUsername());
+
+        return response;
+
+    }
 
     private UserEntityDto mapToDto(UserEntity user){
         UserEntityDto userDto = new UserEntityDto();
@@ -98,5 +133,22 @@ public class UserEntityServiceImpl implements UserEntityService {
         userDto.setPhone(user.getPhone());
 
         return userDto;
+    }
+
+    private String getCurrentUserId(){
+        String token = (String) getJWTFromRequest();
+        return jwtGenerator.getUserIdFromJWT(token);
+    }
+
+    private String getJWTFromRequest() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attributes != null) {
+            HttpServletRequest request = attributes.getRequest();
+            String bearerToken = request.getHeader("Authorization");
+            if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+                return bearerToken.substring(7);
+            }
+        }
+        return null;
     }
 }

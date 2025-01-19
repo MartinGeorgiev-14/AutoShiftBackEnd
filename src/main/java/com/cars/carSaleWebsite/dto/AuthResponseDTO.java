@@ -1,9 +1,11 @@
 package com.cars.carSaleWebsite.dto;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+@NoArgsConstructor
 @Data
 public class AuthResponseDTO {
     private String accessToken;

@@ -1,5 +1,6 @@
 package com.cars.carSaleWebsite.security;
 
+import com.cars.carSaleWebsite.exceptions.ExpiredOrIncorrectJWT;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -57,7 +58,7 @@ public class JWTGenerator {
                     .parseSignedClaims(token);
             return true;
         }catch (Exception ex){
-            throw new AuthenticationCredentialsNotFoundException("Jwt was expired or incorrect");
+           return false;
         }
     }
 
@@ -71,4 +72,5 @@ public class JWTGenerator {
 
         return claims.get("userId", String.class);
     }
+
 }
