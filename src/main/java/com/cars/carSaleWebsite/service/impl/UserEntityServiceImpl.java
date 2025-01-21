@@ -2,6 +2,7 @@ package com.cars.carSaleWebsite.service.impl;
 
 import com.cars.carSaleWebsite.dto.AuthResponseDTO;
 import com.cars.carSaleWebsite.dto.RegisterDto;
+import com.cars.carSaleWebsite.dto.RoleDto;
 import com.cars.carSaleWebsite.dto.UserEntityDto;
 import com.cars.carSaleWebsite.exceptions.NotFoundException;
 import com.cars.carSaleWebsite.models.entities.user.Role;
@@ -20,6 +21,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.management.relation.RoleNotFoundException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.UUID;
 
 @Service
@@ -104,6 +106,23 @@ public class UserEntityServiceImpl implements UserEntityService {
         UserEntity user = userEntityRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new NotFoundException("User was not found"));
 
         return mapToAuth(user, token);
+    }
+
+    @Override
+    public HashSet<RoleDto> getUserRoles(UUID id) {
+        HashSet<Object[]> roles = userEntityRepository.findRolesByUserId(id);
+        HashSet<RoleDto> roleDtos = new HashSet<>();
+
+        for(Object[] role : roles){
+            RoleDto newRole = new RoleDto();
+
+            newRole.setId((UUID) role[0]);
+            newRole.setName((String) role[1]);
+
+            roleDtos.add(newRole);
+        }
+
+        return roleDtos;
     }
 
 

@@ -1,6 +1,7 @@
 package com.cars.carSaleWebsite.controllers;
 
 import com.cars.carSaleWebsite.dto.*;
+import com.cars.carSaleWebsite.models.entities.user.Role;
 import com.cars.carSaleWebsite.repository.RoleRepository;
 import com.cars.carSaleWebsite.repository.UserEntityRepository;
 import com.cars.carSaleWebsite.security.JWTGenerator;
@@ -30,6 +31,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.crypto.SecretKey;
 import javax.management.relation.RoleNotFoundException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -87,12 +89,13 @@ public class AuthController {
     @PostMapping("login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginDto loginDto){
         UserEntityDto user = userEntityService.findUserByUsername(loginDto.getUsername());
+        HashSet<RoleDto> roles = userEntityService.getUserRoles(user.getId());
+
 
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = jwtGenerator.generateToken(authentication, user.getId());
-
-        return new ResponseEntity<>(new AuthResponseDTO(token, user.getPhone(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getUsername(), user.getId()), HttpStatus.OK);
+        return new ResponseEntity<>(new AuthResponseDTO(token, user.getPhone(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getUsername(), user.getId(), roles), HttpStatus.OK);
     }
 
     @PostMapping("getUserInfo")

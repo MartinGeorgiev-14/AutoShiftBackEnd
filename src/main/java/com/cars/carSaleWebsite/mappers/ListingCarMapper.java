@@ -1,5 +1,6 @@
 package com.cars.carSaleWebsite.mappers;
 
+import com.cars.carSaleWebsite.dto.CreateCarListingDto;
 import com.cars.carSaleWebsite.dto.ListingCarDto;
 import com.cars.carSaleWebsite.dto.ListingImageDto;
 import com.cars.carSaleWebsite.dto.UserEntityDto;
@@ -72,7 +73,7 @@ public class ListingCarMapper {
         return car;
     }
 
-    public ListingVehicle toEntity(ListingCarDto car, UserEntity user, Model model, Engine engine, Gearbox gearbox, Body body, Location location){
+    public ListingVehicle toEntity(CreateCarListingDto car, UserEntity user, Model model, Engine engine, Gearbox gearbox, Body body, Location location){
         ListingVehicle newCar = new ListingVehicle();
 
         newCar.setPrice(car.getPrice());

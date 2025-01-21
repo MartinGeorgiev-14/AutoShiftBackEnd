@@ -10,6 +10,7 @@ import java.util.UUID;
 public class FilterDto {
     private UUID make;
     private UUID model;
+    private UUID userId;
     private UUID region;
     private UUID location;
     private UUID engine;

@@ -17,6 +17,7 @@ public class ListingSpecification {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+
             // Price range
             if (filterDTO.getStartPrice() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(
@@ -51,6 +52,10 @@ public class ListingSpecification {
             }
             if (filterDTO.getModel() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("model").get("id"), filterDTO.getModel()));
+            }
+
+            if(filterDTO.getUserId() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("userEntity").get("id"), filterDTO.getUserId()));
             }
 
             // Engine

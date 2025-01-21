@@ -107,16 +107,16 @@ public class ListingCarServiceImpl implements ListingCarService {
 
     @Override
     @Transactional
-    public String createCarListing(ListingCarDto car, List<MultipartFile> images) throws IOException {
+    public String createCarListing(CreateCarListingDto car, List<MultipartFile> images) throws IOException {
 
             String userId = getCurrentUserId();
 
             UserEntity user = userEntityRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new NotFoundException("User was not found"));
-            Model model = modelRepository.findByModelName(car.getModel()).orElseThrow(() -> new NotFoundException("Model not found"));
-            Engine engine = engineRepository.findEngineByType(car.getEngine()).orElseThrow(() -> new NotFoundException("Engine not found"));
-            Gearbox gearbox = gearboxRepository.findGearboxByType(car.getGearbox()).orElseThrow(() -> new NotFoundException("Gearbox not found"));
-            Body body = bodyRepository.findByBodyType(car.getBody()).orElseThrow(() -> new NotFoundException("Body not found"));
-            Location location = locationRepository.findByRegion(car.getLocation()).orElseThrow(() -> new NotFoundException("Location is not found"));
+            Model model = modelRepository.findById(car.getModel()).orElseThrow(() -> new NotFoundException("Model not found"));
+            Engine engine = engineRepository.findById(car.getEngine()).orElseThrow(() -> new NotFoundException("Engine not found"));
+            Gearbox gearbox = gearboxRepository.findById(car.getGearbox()).orElseThrow(() -> new NotFoundException("Gearbox not found"));
+            Body body = bodyRepository.findById(car.getBody()).orElseThrow(() -> new NotFoundException("Body not found"));
+            Location location = locationRepository.findById(car.getLocation()).orElseThrow(() -> new NotFoundException("Location is not found"));
 
             ListingVehicle newListing = listingCarMapper.toEntity(car, user, model, engine, gearbox, body, location);
 
@@ -129,6 +129,7 @@ public class ListingCarServiceImpl implements ListingCarService {
                     listImage.setType(images.get(i).getContentType());
                     listImage.setImageData(images.get(i).getBytes());
                     listImage.setListingId(newListing);
+                    listImage.setMain(true);
 
                     if (car.getMainImgIndex() == i) {
                         listImage.setMain(true);
@@ -201,16 +202,16 @@ public class ListingCarServiceImpl implements ListingCarService {
 
     @Override
     @Transactional
-    public String updateCar(ListingCarDto carDto ,UUID id) throws IOException {
+    public String updateCar(CreateCarListingDto carDto ,UUID id) throws IOException {
         ListingVehicle nowcar = listingCarRepository.findCarById(id).orElseThrow(() -> new NotFoundException("Car was not found"));
 
         //Modifying listing
         UserEntity user = userEntityRepository.findById(UUID.fromString(nowcar.getUserEntity().getId().toString())).orElseThrow(() -> new NotFoundException("User was not found"));
-        Optional<Model> model = modelRepository.findByModelName(carDto.getModel());
-        Optional<Engine> engine = engineRepository.findEngineByType(carDto.getEngine());
-        Optional<Gearbox> gearbox = gearboxRepository.findGearboxByType(carDto.getGearbox());
-        Optional<Body> body = bodyRepository.findByBodyType(carDto.getBody());
-        Optional<Location> location = locationRepository.findByRegion(carDto.getLocation());
+        Optional<Model> model = modelRepository.findById(carDto.getModel());
+        Optional<Engine> engine = engineRepository.findById(carDto.getEngine());
+        Optional<Gearbox> gearbox = gearboxRepository.findById(carDto.getGearbox());
+        Optional<Body> body = bodyRepository.findById(carDto.getBody());
+        Optional<Location> location = locationRepository.findById(carDto.getLocation());
 
         ListingVehicle newcar = listingCarMapper.toEntity(carDto, user, model.orElse(null), engine.orElse(null), gearbox.orElse(null), body.orElse(null), location.orElse(null));
         newcar.setId(nowcar.getId());

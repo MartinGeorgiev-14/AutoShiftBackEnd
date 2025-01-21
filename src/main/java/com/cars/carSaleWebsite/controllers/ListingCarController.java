@@ -1,9 +1,6 @@
 package com.cars.carSaleWebsite.controllers;
 
-import com.cars.carSaleWebsite.dto.CarPaginationResponse;
-import com.cars.carSaleWebsite.dto.FilterDto;
-import com.cars.carSaleWebsite.dto.FormOptionsDto;
-import com.cars.carSaleWebsite.dto.ListingCarDto;
+import com.cars.carSaleWebsite.dto.*;
 import com.cars.carSaleWebsite.service.ListingCarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -70,7 +67,7 @@ public class ListingCarController {
     }
 
     @PostMapping(path = "app/create", consumes = {"multipart/form-data"})
-    public ResponseEntity<String> postCar(@ModelAttribute ListingCarDto car,
+    public ResponseEntity<String> postCar(@ModelAttribute CreateCarListingDto car,
                                           @RequestPart("uploadImages") List<MultipartFile> images) throws IOException {
         return new ResponseEntity<>(listingCarService.createCarListing(car, images), HttpStatus.CREATED);
     }
@@ -85,7 +82,7 @@ public class ListingCarController {
 
     @PreAuthorize("hasRole('ADMIN') or @listingCarService.canAccessListing(#listingId)")
     @PatchMapping(path = "app/update/{listingId}")
-    public ResponseEntity<String> updateCar(@RequestBody ListingCarDto car, @PathVariable UUID listingId) throws IOException {
+    public ResponseEntity<String> updateCar(@RequestBody CreateCarListingDto car, @PathVariable UUID listingId) throws IOException {
 
         return new ResponseEntity<>(listingCarService.updateCar(car, listingId), HttpStatus.OK);
     }
