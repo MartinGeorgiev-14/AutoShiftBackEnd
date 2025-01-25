@@ -1,6 +1,7 @@
 package com.cars.carSaleWebsite.repository;
 
 import com.cars.carSaleWebsite.models.entities.vehicle.Gearbox;
+import com.cars.carSaleWebsite.models.entities.vehicle.Model;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,4 +17,7 @@ public interface GearboxRepository extends JpaRepository<Gearbox, UUID> {
 
     @Query("SELECT g FROM Gearbox g")
     HashSet<Gearbox> getAll();
+
+    @Query("Select m FROM Gearbox m WHERE m.id = :id")
+    Optional<Gearbox> findByIdOrNull(@Param("id") UUID id);
 }

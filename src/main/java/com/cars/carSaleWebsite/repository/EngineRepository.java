@@ -1,6 +1,7 @@
 package com.cars.carSaleWebsite.repository;
 
 import com.cars.carSaleWebsite.models.entities.vehicle.Engine;
+import com.cars.carSaleWebsite.models.entities.vehicle.Model;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,4 +17,7 @@ public interface EngineRepository extends JpaRepository<Engine, UUID> {
 
     @Query("SELECT e FROM Engine e")
     HashSet<Engine> getAll();
+
+    @Query("Select m FROM Engine m WHERE m.id = :id")
+    Optional<Engine> findByIdOrNull(@Param("id") UUID id);
 }

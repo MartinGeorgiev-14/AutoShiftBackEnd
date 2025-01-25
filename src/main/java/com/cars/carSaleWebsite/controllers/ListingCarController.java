@@ -68,8 +68,8 @@ public class ListingCarController {
 
     @PostMapping(path = "app/create", consumes = {"multipart/form-data"})
     public ResponseEntity<String> postCar(@ModelAttribute CreateCarListingDto car,
-                                          @RequestPart("uploadImages") List<MultipartFile> images) throws IOException {
-        return new ResponseEntity<>(listingCarService.createCarListing(car, images), HttpStatus.CREATED);
+                                          @RequestPart("uploadImages") List<MultipartFile> uploadImages) throws IOException {
+        return new ResponseEntity<>(listingCarService.createCarListing(car, uploadImages), HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasRole('ADMIN') or @listingCarService.canAccessListing(#listingId)")

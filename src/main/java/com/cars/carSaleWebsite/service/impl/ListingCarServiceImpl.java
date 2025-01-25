@@ -31,6 +31,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.*;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashSet;
@@ -207,13 +208,13 @@ public class ListingCarServiceImpl implements ListingCarService {
 
         //Modifying listing
         UserEntity user = userEntityRepository.findById(UUID.fromString(nowcar.getUserEntity().getId().toString())).orElseThrow(() -> new NotFoundException("User was not found"));
-        Optional<Model> model = modelRepository.findById(carDto.getModel());
-        Optional<Engine> engine = engineRepository.findById(carDto.getEngine());
-        Optional<Gearbox> gearbox = gearboxRepository.findById(carDto.getGearbox());
-        Optional<Body> body = bodyRepository.findById(carDto.getBody());
-        Optional<Location> location = locationRepository.findById(carDto.getLocation());
+        Model model = modelRepository.findByIdOrNull(carDto.getModel()).orElse(null);
+        Engine engine = engineRepository.findByIdOrNull(carDto.getEngine()).orElse(null);
+        Gearbox gearbox = gearboxRepository.findByIdOrNull(carDto.getGearbox()).orElse(null);
+        Body body = bodyRepository.findByIdOrNull(carDto.getBody()).orElse(null);
+        Location location = locationRepository.findByIdOrNull(carDto.getLocation()).orElse(null);
 
-        ListingVehicle newcar = listingCarMapper.toEntity(carDto, user, model.orElse(null), engine.orElse(null), gearbox.orElse(null), body.orElse(null), location.orElse(null));
+        ListingVehicle newcar = listingCarMapper.toEntity(carDto, user, model, engine, gearbox, body, location);
         newcar.setId(nowcar.getId());
 
         patch(nowcar, newcar);
@@ -238,67 +239,6 @@ public class ListingCarServiceImpl implements ListingCarService {
         }
 
 
-//
-//        if (!(images.getFirst().isEmpty())) {
-//            for (MultipartFile image : images) {
-//                ListingImage listImage = new ListingImage();
-//                Boolean isFound = false;
-//
-//                if(imagesDb.size() > 8){
-//                    break;
-//                }
-//
-//                for(ListingImage dbImage : imagesDb){
-//
-//                    if(image.getBytes().equals(dbImage.getImageData())){
-//                        isFound = true;
-//                    }
-//                    //tuka trqbva do pravish problema
-//
-//                }
-//
-//                if(isFound){
-//                    listImage.setType(image.getContentType());
-//                    listImage.setImageData(image.getBytes());
-//                    listImage.setListingId(nowcar);
-//                    listingImageRepository.save(listImage);
-//                }
-//            }
-//        }
-//
-//        imagesDb = listingImageRepository.getAllListingImagesByListing(newcar);
-//
-//        if(carDto.getMainImgId() != null){
-//            for (ListingImage image : imagesDb){
-//                if (image.getId().equals(carDto.getMainImgId()) && nowcar.getId() == id){
-//                    image.setMain(true);
-//                }
-//                else{
-//                    image.setMain(false);
-//                }
-//
-//                listingImageRepository.save(image);
-//            }
-//        }
-//
-
-        //doesnt work
-
-//        if(carDto.getMainImgIndex() >= 0 && images.size() >= carDto.getMainImgIndex()){
-//            for (int i = 0; i < images.size(); i++){
-//                ListingImage image = listingImageRepository.getReferenceById(images.get(i).getId());
-//
-//                if(i == carDto.getMainImgIndex()){
-//                    image.setMain(true);
-//                }
-//                else{
-//                    image.setMain(false);
-//                }
-//
-//
-//                listingImageRepository.save(image);
-//            }
-//        }
 
 
 
@@ -309,10 +249,12 @@ public class ListingCarServiceImpl implements ListingCarService {
     @Override
     public CarPaginationResponse searchCarByCriteria(FilterDto filterDto, int pageNo, int pageSize) {
 
-        PageRequest pageRequest = PageRequest.of(pageNo, pageSize, Sort.by(new Sort.Order(Sort.Direction.ASC, "price")));
+        PageRequest pageRequest = PageRequest.of(pageNo, pageSize, Sort.by(Sort.Direction.ASC, "price"));
+
+        Page<ListingVehicle> listings2 = listingCarRepository.findAll(pageRequest);
 
         Page<ListingVehicle> listings = listingCarRepository.findAll(
-                ListingSpecification.withFilters(filterDto),
+                ListingSpecification.filters(filterDto),
                 pageRequest);
 
         HashSet<ListingCarDto> content = (HashSet<ListingCarDto>) listings.stream().map(c -> {

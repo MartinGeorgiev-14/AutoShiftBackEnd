@@ -1,6 +1,7 @@
 package com.cars.carSaleWebsite.repository;
 
 import com.cars.carSaleWebsite.models.entities.vehicle.Location;
+import com.cars.carSaleWebsite.models.entities.vehicle.Model;
 import com.cars.carSaleWebsite.models.entities.vehicle.Region;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,4 +17,7 @@ public interface LocationRepository extends JpaRepository<Location, UUID> {
 
     @Query("SELECT l FROM Location l")
     HashSet<Location> getAll();
+
+    @Query("Select m FROM Location m WHERE m.id = :id")
+    Optional<Location> findByIdOrNull(@Param("id") UUID id);
 }

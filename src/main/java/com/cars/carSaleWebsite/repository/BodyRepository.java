@@ -1,6 +1,7 @@
 package com.cars.carSaleWebsite.repository;
 
 import com.cars.carSaleWebsite.models.entities.vehicle.Body;
+import com.cars.carSaleWebsite.models.entities.vehicle.Model;
 import com.cars.carSaleWebsite.models.entities.vehicle.Type;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,4 +17,7 @@ public interface BodyRepository extends JpaRepository<Body, UUID> {
 
     @Query("SELECT b FROM Body b")
     HashSet<Body> getAll();
+
+    @Query("Select m FROM Body m WHERE m.id = :id")
+    Optional<Body> findByIdOrNull(@Param("id") UUID id);
 }

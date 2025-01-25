@@ -24,6 +24,7 @@ public class ListingVehicle {
     private Integer horsepower;
     private Integer mileage;
 
+    @Column(length = 5000)
     private String description;
     @Column(nullable = false)
     private Integer engineDisplacement;
