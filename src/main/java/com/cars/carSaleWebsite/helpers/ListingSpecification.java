@@ -30,6 +30,12 @@ public class ListingSpecification {
                         .and(byPriceRange(filter.getStartPrice(), filter.getEndPrice())));
     }
 
+    public static Specification<ListingVehicle> filterForUser(UUID id){
+        return (root, query, criteriaBuilder) ->
+            id != null ? criteriaBuilder.equal(root.get("userEntity").get("id"), id) : criteriaBuilder.conjunction();
+        
+    }
+
     private static Specification<ListingVehicle> byMake(UUID make) {
         return (root, query, criteriaBuilder) ->
                 make != null ? criteriaBuilder.equal(root.get("model").get("make").get("id"), make) : criteriaBuilder.conjunction();

@@ -23,6 +23,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -165,18 +169,34 @@ public class ListingCarServiceImpl implements ListingCarService {
 
     @Override
     public CarPaginationResponse getByPage(int pageNo, int pageSize) {
+        String id = getCurrentUserId();
+        UserEntity user = userEntityRepository.findById(UUID.fromString(id)).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<ListingVehicle> cars = listingCarRepository.findAll(pageable);
-        List<ListingVehicle> listOfCar = cars.getContent();
-        HashSet<ListingCarDto> content = (HashSet<ListingCarDto>) listOfCar.stream().map(c -> {
-            UserEntity user = userEntityRepository.findById(c.getUserEntity().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
-            UserEntityDto mappedUser = userEntityMapper.toDTO(user);
+        Page<ListingVehicle> cars = null;
+
+        if (authentication != null) {
+            for (GrantedAuthority authority : authentication.getAuthorities()) {
+                if (authority.getAuthority().equals("ROLE_ADMIN")) {
+                    cars = listingCarRepository.findAll(pageable);
+                }
+                else{
+                    cars = listingCarRepository.findAll(ListingSpecification.filterForUser(user.getId()), pageable);
+                }
+            }
+        }
+
+        HashSet<ListingCarDto> content = (HashSet<ListingCarDto>) cars.stream().map(c -> {
+            UserEntity user2 = userEntityRepository.findById(c.getUserEntity().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
+            UserEntityDto mappedUser = userEntityMapper.toDTO(user2);
             List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(c);
 
             ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser, images);
 
             return mappedListing;
         }).collect(Collectors.toSet());
+
 
         CarPaginationResponse carPaginationResponse = new CarPaginationResponse();
         carPaginationResponse.setContent(content);
@@ -284,8 +304,15 @@ public class ListingCarServiceImpl implements ListingCarService {
     public boolean canAccessListing(String listingId) {
         String userId = getCurrentUserId();
 
-        return listingCarRepository.findCarById(UUID.fromString(listingId))
-                .map(l -> l.getUserEntity().getId().equals(userId)).orElse(false);
+        ListingVehicle vehicle = listingCarRepository.findCarById(UUID.fromString(listingId)).orElse(null);
+
+        if (vehicle == null) {
+            return false;
+        }
+
+        UUID listingOwnerId = vehicle.getUserEntity().getId();
+
+        return listingOwnerId.equals(UUID.fromString(userId));
 
     }
 
