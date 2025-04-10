@@ -1,10 +1,9 @@
 package com.cars.carSaleWebsite.service;
 
-import com.cars.carSaleWebsite.dto.AuthResponseDTO;
-import com.cars.carSaleWebsite.dto.RegisterDto;
-import com.cars.carSaleWebsite.dto.RoleDto;
-import com.cars.carSaleWebsite.dto.UserEntityDto;
-import com.cars.carSaleWebsite.models.entities.user.Role;
+import com.cars.carSaleWebsite.dto.Authentication.AuthResponseDTO;
+import com.cars.carSaleWebsite.dto.Authentication.RegisterDto;
+import com.cars.carSaleWebsite.dto.Authentication.RoleDto;
+import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
 
 import javax.management.relation.RoleNotFoundException;
 import java.util.HashSet;

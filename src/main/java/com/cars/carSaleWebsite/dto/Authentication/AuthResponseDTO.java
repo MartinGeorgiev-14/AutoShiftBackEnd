@@ -1,6 +1,5 @@
-package com.cars.carSaleWebsite.dto;
+package com.cars.carSaleWebsite.dto.Authentication;
 
-import com.cars.carSaleWebsite.models.entities.user.Role;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

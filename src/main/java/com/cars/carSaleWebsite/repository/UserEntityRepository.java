@@ -1,16 +1,16 @@
 package com.cars.carSaleWebsite.repository;
 
-import com.cars.carSaleWebsite.dto.RoleDto;
-import com.cars.carSaleWebsite.models.entities.user.Role;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.UUID;
 
+@Repository
 public interface UserEntityRepository extends JpaRepository<UserEntity, UUID> {
     Optional<UserEntity>findByUsername(String username);
     @Query("SELECT u FROM UserEntity u WHERE u.username = :username")

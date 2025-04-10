@@ -1,19 +1,16 @@
 package com.cars.carSaleWebsite.mappers;
 
-import com.cars.carSaleWebsite.dto.CreateCarListingDto;
-import com.cars.carSaleWebsite.dto.ListingCarDto;
-import com.cars.carSaleWebsite.dto.ListingImageDto;
-import com.cars.carSaleWebsite.dto.UserEntityDto;
+import com.cars.carSaleWebsite.dto.Listing.CRUD.CreateCarListingDto;
+import com.cars.carSaleWebsite.dto.Listing.ListingCarDto;
+import com.cars.carSaleWebsite.dto.Listing.ListingImageDto;
+import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
 import com.cars.carSaleWebsite.models.entities.vehicle.*;
 import com.cars.carSaleWebsite.repository.UserEntityRepository;
-import com.cars.carSaleWebsite.service.ListingCarService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 
 @Component
@@ -27,7 +24,7 @@ public class ListingCarMapper {
         this.userEntityMapper = userEntityMapper;
     }
 
-    public ListingCarDto toDTO(ListingVehicle vehicle, UserEntityDto mappedUser, List<ListingImageDto> images){
+    public ListingCarDto toDTO(ListingVehicle vehicle, UserEntityDto mappedUser){
 
 
         ListingCarDto car = new ListingCarDto();
@@ -38,7 +35,6 @@ public class ListingCarMapper {
         car.setEngine(vehicle.getEngine().getType());
         car.setGearbox(vehicle.getGearbox().getType());
         car.setMake(vehicle.getModel().getMake().getName());
-        car.setImages(images);
         car.setHorsepower(vehicle.getHorsepower());
         car.setMileage(vehicle.getMileage());
         car.setModel(vehicle.getModel().getName());
@@ -47,7 +43,11 @@ public class ListingCarMapper {
         car.setCreatedAt(vehicle.getCreatedAt());
         car.setEditedAt(vehicle.getEditedAt());
         car.setEngineDisplacement(vehicle.getEngineDisplacement());
-
+        car.setIsActive(vehicle.getIsActive());
+        car.setManufactureDate(vehicle.getManufactureDate());
+        car.setCubicCentimeters(vehicle.getCubicCentimeters());
+        car.setColor(vehicle.getColor().getColor());
+        car.setColor(vehicle.getColor().getColor());
         car.setUser(mappedUser);
         car.setRegion(vehicle.getLocation().getRegion().getRegion());
         car.setLocation(vehicle.getLocation().getLocation());

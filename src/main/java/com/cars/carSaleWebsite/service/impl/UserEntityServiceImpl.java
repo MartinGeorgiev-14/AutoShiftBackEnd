@@ -1,9 +1,9 @@
 package com.cars.carSaleWebsite.service.impl;
 
-import com.cars.carSaleWebsite.dto.AuthResponseDTO;
-import com.cars.carSaleWebsite.dto.RegisterDto;
-import com.cars.carSaleWebsite.dto.RoleDto;
-import com.cars.carSaleWebsite.dto.UserEntityDto;
+import com.cars.carSaleWebsite.dto.Authentication.AuthResponseDTO;
+import com.cars.carSaleWebsite.dto.Authentication.RegisterDto;
+import com.cars.carSaleWebsite.dto.Authentication.RoleDto;
+import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
 import com.cars.carSaleWebsite.exceptions.NotFoundException;
 import com.cars.carSaleWebsite.models.entities.user.Role;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;

@@ -1,9 +1,13 @@
 package com.cars.carSaleWebsite.service.impl;
 
-import com.cars.carSaleWebsite.dto.*;
-import com.cars.carSaleWebsite.dto.FormOptionsDto;
+import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
+import com.cars.carSaleWebsite.dto.Listing.CRUD.CreateCarListingDto;
+import com.cars.carSaleWebsite.dto.Listing.CRUD.FormOptionsDto;
+import com.cars.carSaleWebsite.dto.Listing.*;
 import com.cars.carSaleWebsite.exceptions.NotFoundException;
+import com.cars.carSaleWebsite.helpers.BodyCreator;
 import com.cars.carSaleWebsite.helpers.ListingSpecification;
+import com.cars.carSaleWebsite.helpers.MessageCreator;
 import com.cars.carSaleWebsite.mappers.FilterMapper;
 import com.cars.carSaleWebsite.mappers.ListingCarMapper;
 import com.cars.carSaleWebsite.mappers.ListingImageMapper;
@@ -12,9 +16,10 @@ import com.cars.carSaleWebsite.models.entities.listing.ListingImage;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
 import com.cars.carSaleWebsite.models.entities.vehicle.*;
+import com.cars.carSaleWebsite.models.nonEntity.Message;
 import com.cars.carSaleWebsite.repository.*;
 import com.cars.carSaleWebsite.security.JWTGenerator;
-import com.cars.carSaleWebsite.service.ListingCarService;
+import com.cars.carSaleWebsite.service.ListingVehicleService;
 import com.cars.carSaleWebsite.service.ListingImageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +28,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,20 +40,17 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.awt.*;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("listingCarService")
-public class ListingCarServiceImpl implements ListingCarService {
+public class ListingVehicleServiceImpl implements ListingVehicleService {
 
-   private final ListingCarRepository listingCarRepository;
+   private final ListingVehicleRepository listingVehicleRepository;
    private final UserEntityRepository userEntityRepository;
    private final ListingCarMapper listingCarMapper;
    private final ListingImageRepository listingImageRepository;
@@ -65,18 +68,21 @@ public class ListingCarServiceImpl implements ListingCarService {
    private final TypeRepository typeRepository;
    private final MakeRepository makeRepository;
    private final RegionRepository regionRepository;
+   private final BodyCreator bodyCreator;
+   private final MessageCreator messageCreator;
 
     @Autowired
-    public ListingCarServiceImpl(ListingCarRepository listingCarRepository, UserEntityRepository userEntityRepository,
-                                 ListingCarMapper listingCarMapper, ListingImageRepository listingImageRepository,
-                                 UserEntityMapper userEntityMapper, ListingImageMapper listingImageMapper,
-                                 ListingImageService listingImageService, ModelRepository modelRepository,
-                                 EngineRepository engineRepository, GearboxRepository gearboxRepository,
-                                 BodyRepository bodyRepository, LocationRepository locationRepository,
-                                 ObjectMapper objectMapper, FilterMapper filterMapper,
-                                 JWTGenerator jwtGenerator, TypeRepository typeRepository,
-                                 MakeRepository makeRepository, RegionRepository regionRepository) {
-        this.listingCarRepository = listingCarRepository;
+    public ListingVehicleServiceImpl(ListingVehicleRepository listingVehicleRepository, UserEntityRepository userEntityRepository,
+                                     ListingCarMapper listingCarMapper, ListingImageRepository listingImageRepository,
+                                     UserEntityMapper userEntityMapper, ListingImageMapper listingImageMapper,
+                                     ListingImageService listingImageService, ModelRepository modelRepository,
+                                     EngineRepository engineRepository, GearboxRepository gearboxRepository,
+                                     BodyRepository bodyRepository, LocationRepository locationRepository,
+                                     ObjectMapper objectMapper, FilterMapper filterMapper,
+                                     JWTGenerator jwtGenerator, TypeRepository typeRepository,
+                                     MakeRepository makeRepository, RegionRepository regionRepository,
+                                     BodyCreator bodyCreator, MessageCreator messageCreator) {
+        this.listingVehicleRepository = listingVehicleRepository;
         this.userEntityRepository = userEntityRepository;
         this.listingCarMapper = listingCarMapper;
         this.listingImageRepository = listingImageRepository;
@@ -94,20 +100,32 @@ public class ListingCarServiceImpl implements ListingCarService {
         this.typeRepository = typeRepository;
         this.makeRepository = makeRepository;
         this.regionRepository = regionRepository;
+        this.bodyCreator = bodyCreator;
+        this.messageCreator = messageCreator;
     }
 
     @Override
-    @Transactional
-    public ListingCarDto getCarById(UUID id) {
+    public Map<String, Object> getListingById(UUID id) {
+        try{
+            ListingVehicle car = listingVehicleRepository.findCarById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing was not found"));
+            UserEntity user = userEntityRepository.findById(car.getUserEntity().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
+            UserEntityDto mappedUser = userEntityMapper.toDTO(user);
+            ListingCarDto mappedListing = listingCarMapper.toDTO(car, mappedUser);
 
-        ListingVehicle car = listingCarRepository.findCarById(id).orElseThrow(() -> new NotFoundException("Listing was not found"));
-        UserEntity user = userEntityRepository.findById(car.getUserEntity().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
-        UserEntityDto mappedUser = userEntityMapper.toDTO(user);
-        List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(car);
+            Map<String, Object> body = bodyCreator.create();
+            Message message = messageCreator.create(false, "Listing Found", "The listing you've searched has been found", "success");
 
-        ListingCarDto mappedListing = listingCarMapper.toDTO(car, mappedUser, images);
+            body.put("listing", mappedListing);
+            body.put("message", message);
+            body.put("status", HttpStatus.OK.value());
 
-        return mappedListing;
+            return body;
+        } catch (ResponseStatusException ex) {
+            return createErrorResponse(ex.getReason(), ex.getStatusCode());
+        }
+        catch (Exception ex){
+            return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 
     @Override
@@ -125,14 +143,14 @@ public class ListingCarServiceImpl implements ListingCarService {
 
             ListingVehicle newListing = listingCarMapper.toEntity(car, user, model, engine, gearbox, body, location);
 
-            listingCarRepository.save(newListing);
+            listingVehicleRepository.save(newListing);
 
             if (!(images.getFirst().isEmpty())) {
                 for (int i = 0; i < images.size(); i++) {
                     ListingImage listImage = new ListingImage();
 
                     listImage.setType(images.get(i).getContentType());
-                    listImage.setImageData(images.get(i).getBytes());
+//                    listImage.setImageData(images.get(i).getBytes());
                     listImage.setListingId(newListing);
                     listImage.setMain(true);
 
@@ -151,14 +169,14 @@ public class ListingCarServiceImpl implements ListingCarService {
 
     @Override
     public HashSet<ListingCarDto> getAllCars() {
-       HashSet<ListingVehicle> cars = listingCarRepository.getAllCars();
+       HashSet<ListingVehicle> cars = listingVehicleRepository.getAllCars();
 
        HashSet<ListingCarDto> mapped = (HashSet<ListingCarDto>) cars.stream().map(c -> {
            UserEntity user = userEntityRepository.findById(c.getUserEntity().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
            UserEntityDto mappedUser = userEntityMapper.toDTO(user);
            List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(c);
 
-           ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser, images);
+           ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser);
 
            return mappedListing;
 
@@ -179,10 +197,10 @@ public class ListingCarServiceImpl implements ListingCarService {
         if (authentication != null) {
             for (GrantedAuthority authority : authentication.getAuthorities()) {
                 if (authority.getAuthority().equals("ROLE_ADMIN")) {
-                    cars = listingCarRepository.findAll(pageable);
+                    cars = listingVehicleRepository.findAll(pageable);
                 }
                 else{
-                    cars = listingCarRepository.findAll(ListingSpecification.filterForUser(user.getId()), pageable);
+                    cars = listingVehicleRepository.findAll(ListingSpecification.filterForUser(user.getId()), pageable);
                 }
             }
         }
@@ -192,7 +210,7 @@ public class ListingCarServiceImpl implements ListingCarService {
             UserEntityDto mappedUser = userEntityMapper.toDTO(user2);
             List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(c);
 
-            ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser, images);
+            ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser);
 
             return mappedListing;
         }).collect(Collectors.toSet());
@@ -214,9 +232,9 @@ public class ListingCarServiceImpl implements ListingCarService {
     @Transactional
     public String deleteCarById(UUID id) {
 
-        ListingVehicle car = listingCarRepository.findCarById(id).orElseThrow(() -> new NotFoundException("Listing was not found"));
+        ListingVehicle car = listingVehicleRepository.findCarById(id).orElseThrow(() -> new NotFoundException("Listing was not found"));
         listingImageRepository.deleteListingById(car);
-        listingCarRepository.deleteById(car.getId());
+        listingVehicleRepository.deleteById(car.getId());
 
         return "Listing has been deleted successfully";
     }
@@ -224,7 +242,7 @@ public class ListingCarServiceImpl implements ListingCarService {
     @Override
     @Transactional
     public String updateCar(CreateCarListingDto carDto ,UUID id) throws IOException {
-        ListingVehicle nowcar = listingCarRepository.findCarById(id).orElseThrow(() -> new NotFoundException("Car was not found"));
+        ListingVehicle nowcar = listingVehicleRepository.findCarById(id).orElseThrow(() -> new NotFoundException("Car was not found"));
 
         //Modifying listing
         UserEntity user = userEntityRepository.findById(UUID.fromString(nowcar.getUserEntity().getId().toString())).orElseThrow(() -> new NotFoundException("User was not found"));
@@ -239,7 +257,7 @@ public class ListingCarServiceImpl implements ListingCarService {
 
         patch(nowcar, newcar);
 
-        listingCarRepository.save(nowcar);
+        listingVehicleRepository.save(nowcar);
 
         //Modifying images
         List<ListingImage> imagesDb = listingImageRepository.getAllListingImagesByListing(newcar);
@@ -271,9 +289,8 @@ public class ListingCarServiceImpl implements ListingCarService {
 
         PageRequest pageRequest = PageRequest.of(pageNo, pageSize, Sort.by(Sort.Direction.ASC, "price"));
 
-        Page<ListingVehicle> listings2 = listingCarRepository.findAll(pageRequest);
 
-        Page<ListingVehicle> listings = listingCarRepository.findAll(
+        Page<ListingVehicle> listings = listingVehicleRepository.findAll(
                 ListingSpecification.filters(filterDto),
                 pageRequest);
 
@@ -282,7 +299,7 @@ public class ListingCarServiceImpl implements ListingCarService {
             UserEntityDto mappedUser = userEntityMapper.toDTO(user);
             List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(c);
 
-            ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser, images);
+            ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser);
 
             return mappedListing;
         }).collect(Collectors.toSet());
@@ -304,7 +321,7 @@ public class ListingCarServiceImpl implements ListingCarService {
     public boolean canAccessListing(String listingId) {
         String userId = getCurrentUserId();
 
-        ListingVehicle vehicle = listingCarRepository.findCarById(UUID.fromString(listingId)).orElse(null);
+        ListingVehicle vehicle = listingVehicleRepository.findCarById(UUID.fromString(listingId)).orElse(null);
 
         if (vehicle == null) {
             return false;
@@ -385,5 +402,14 @@ public class ListingCarServiceImpl implements ListingCarService {
         return null;
     }
 
+    private Map<String, Object> createErrorResponse(String reason, HttpStatusCode status){
+        Map<String, Object> body = bodyCreator.create();
+
+        Message message = messageCreator.create(true, "Error", reason, "error");
+        body.put("message", message);
+        body.put("status", status.value());
+
+        return body;
+    }
 }
 

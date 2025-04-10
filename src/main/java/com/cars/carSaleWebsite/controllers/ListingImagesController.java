@@ -1,6 +1,5 @@
 package com.cars.carSaleWebsite.controllers;
 
-import com.cars.carSaleWebsite.dto.ListingImageDto;
 import com.cars.carSaleWebsite.models.entities.listing.ListingImage;
 import com.cars.carSaleWebsite.repository.ListingImageRepository;
 import com.cars.carSaleWebsite.service.ListingImageService;
@@ -9,11 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.HashSet;
-import java.util.UUID;
 
 @RequestMapping("/api/")
 @Controller

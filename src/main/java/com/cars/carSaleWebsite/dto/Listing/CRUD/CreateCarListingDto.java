@@ -1,5 +1,6 @@
-package com.cars.carSaleWebsite.dto;
+package com.cars.carSaleWebsite.dto.Listing.CRUD;
 
+import com.cars.carSaleWebsite.dto.Listing.ListingImageDto;
 import lombok.Data;
 
 import java.math.BigDecimal;

@@ -1,39 +1,24 @@
 package com.cars.carSaleWebsite.controllers;
 
-import com.cars.carSaleWebsite.dto.*;
-import com.cars.carSaleWebsite.models.entities.user.Role;
+import com.cars.carSaleWebsite.dto.Authentication.*;
 import com.cars.carSaleWebsite.repository.RoleRepository;
 import com.cars.carSaleWebsite.repository.UserEntityRepository;
 import com.cars.carSaleWebsite.security.JWTGenerator;
-import com.cars.carSaleWebsite.security.SecurityConstant;
 import com.cars.carSaleWebsite.service.UserEntityService;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServletRequest;
-import org.apache.coyote.Response;
-import org.apache.el.parser.BooleanNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.crypto.SecretKey;
 import javax.management.relation.RoleNotFoundException;
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 

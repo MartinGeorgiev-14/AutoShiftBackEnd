@@ -1,7 +1,7 @@
 package com.cars.carSaleWebsite.mappers;
 
-import com.cars.carSaleWebsite.dto.FilterDto;
-import com.cars.carSaleWebsite.dto.SearchDto;
+import com.cars.carSaleWebsite.dto.Listing.FilterDto;
+import com.cars.carSaleWebsite.dto.Listing.CRUD.SearchDto;
 import com.cars.carSaleWebsite.models.entities.vehicle.*;
 import org.springframework.stereotype.Component;
 

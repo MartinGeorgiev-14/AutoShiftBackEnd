@@ -1,8 +1,6 @@
-package com.cars.carSaleWebsite.dto;
+package com.cars.carSaleWebsite.dto.Listing;
 
-import com.cars.carSaleWebsite.models.entities.listing.ListingImage;
-import com.cars.carSaleWebsite.models.entities.user.UserEntity;
-import com.cars.carSaleWebsite.models.entities.vehicle.*;
+import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -28,7 +26,11 @@ public class ListingCarDto
     private Integer mainImgIndex;
     private UUID mainImgId;
     private List<ListingImageDto> images;
-
+    private String color;
+    private String euroStandard;
+    private Boolean isActive;
+    private Date manufactureDate;
+    private Integer cubicCentimeters;
     private String type;
     private String body;
     private String location;

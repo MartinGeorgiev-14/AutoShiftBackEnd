@@ -15,10 +15,10 @@ public class ListingImage extends BaseAbstract {
     @Lob
     @Basic(fetch = FetchType.LAZY)
     @Column(length = 10_000_000)
-    private byte[] imageData;
+    private String url;
 
     @ManyToOne
-    @JoinColumn(name = "listing_id", nullable = false, columnDefinition = "BLOB")
+    @JoinColumn(name = "listing_id", nullable = false, columnDefinition = "UUID")
     private ListingVehicle listingId;
 
     public boolean getIsMain() {

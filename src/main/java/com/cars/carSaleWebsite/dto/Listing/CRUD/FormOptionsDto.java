@@ -1,4 +1,4 @@
-package com.cars.carSaleWebsite.dto;
+package com.cars.carSaleWebsite.dto.Listing.CRUD;
 
 import com.cars.carSaleWebsite.models.entities.vehicle.*;
 import lombok.Data;

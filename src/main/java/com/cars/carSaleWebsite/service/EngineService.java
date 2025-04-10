@@ -1,7 +1,7 @@
 package com.cars.carSaleWebsite.service;
 
-import com.cars.carSaleWebsite.dto.ListingCarDto;
-import com.cars.carSaleWebsite.dto.EngineDto;
+import com.cars.carSaleWebsite.dto.Listing.ListingCarDto;
+import com.cars.carSaleWebsite.dto.Listing.EngineDto;
 
 import java.util.HashSet;
 import java.util.UUID;

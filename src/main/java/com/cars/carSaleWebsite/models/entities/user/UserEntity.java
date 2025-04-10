@@ -15,11 +15,17 @@ import java.util.Set;
 @NoArgsConstructor
 public class UserEntity extends BaseAbstract {
 
+    @Column(name = "username", nullable = false, unique = true)
     private String username;
+    @Column(name = "password", nullable = false)
     private String password;
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
+    @Column(name = "first_name")
     private String firstName;
+    @Column(name = "last_name")
     private String lastName;
+    @Column(name = "phone")
     private String phone;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)

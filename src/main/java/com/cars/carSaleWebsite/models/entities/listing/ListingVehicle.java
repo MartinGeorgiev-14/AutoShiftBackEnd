@@ -18,11 +18,14 @@ public class ListingVehicle {
     @GeneratedValue
     private UUID id;
 
+    private Boolean isActive;
     private BigDecimal price;
+    private Date manufactureDate;
     private Date createdAt;
     private Date editedAt;
     private Integer horsepower;
     private Integer mileage;
+    private Integer cubicCentimeters;
 
     @Column(length = 5000)
     private String description;
@@ -44,6 +47,14 @@ public class ListingVehicle {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "body_id", nullable = false)
     private Body body;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "color_id", referencedColumnName = "id", nullable = false)
+    private Color color;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "euro_standard_id", referencedColumnName = "id", nullable = false)
+    private EuroStandard euroStandard;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

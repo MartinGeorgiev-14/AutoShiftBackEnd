@@ -1,6 +1,6 @@
 package com.cars.carSaleWebsite.mappers;
 
-import com.cars.carSaleWebsite.dto.UserEntityDto;
+import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
 import org.springframework.stereotype.Component;
 

@@ -1,16 +1,11 @@
 package com.cars.carSaleWebsite.helpers;
 
-import com.cars.carSaleWebsite.dto.FilterDto;
+import com.cars.carSaleWebsite.dto.Listing.FilterDto;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
-import com.cars.carSaleWebsite.models.entities.vehicle.Model;
-import jakarta.persistence.criteria.Predicate;
-import org.hibernate.mapping.Join;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Component
