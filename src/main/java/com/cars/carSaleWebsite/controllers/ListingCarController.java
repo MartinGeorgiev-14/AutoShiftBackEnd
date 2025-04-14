@@ -47,19 +47,35 @@ public class ListingCarController {
     }
 
     @GetMapping("app/options")
-    public ResponseEntity<FormOptionsDto> getFormOptions(){
+    public ResponseEntity<Map<String, Object>> getFormOptions(){
 
-        FormOptionsDto options = listingVehicleService.getAllFormOptions();
+        Map<String, Object> body = listingVehicleService.getAllFormOptions();
+        Integer status = (Integer) body.get("status");
 
-        return new ResponseEntity<>(options, HttpStatus.OK);
+        if(status != 200)
+        {
+            return new ResponseEntity<>(body, HttpStatus.valueOf(status));
+        }
+
+        return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
     @GetMapping("app/page")
-    public ResponseEntity<CarPaginationResponse> getCarsByPage(
+    public ResponseEntity<Map<String, Object>> getCarsByPage(
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize){
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "Price", required = false) String sortBy,
+            @RequestParam(value = "sortDirection", defaultValue = "ASC", required = false) String sortDirection) {
 
-        return new ResponseEntity<>(listingVehicleService.getByPage(pageNo, pageSize), HttpStatus.OK);
+        Map<String, Object> body = listingVehicleService.getByPage(pageNo, pageSize, sortBy, sortDirection);
+        Integer status = (Integer) body.get("status");
+
+        if(status != 200)
+        {
+            return new ResponseEntity<>(body, HttpStatus.valueOf(status));
+        }
+
+        return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
     @PostMapping("app/search")

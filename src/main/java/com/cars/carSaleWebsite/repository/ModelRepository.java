@@ -15,7 +15,7 @@ public interface ModelRepository extends JpaRepository<Model, UUID> {
     Optional<Model> findByModelName(@Param("name") String name);
 
     @Query("SELECT m FROM Model m")
-    HashSet<Model> getALl();
+    HashSet<Model> getAll();
 
     @Query("Select m FROM Model m WHERE m.id = :id")
     Optional<Model> findByIdOrNull(@Param("id") UUID id);

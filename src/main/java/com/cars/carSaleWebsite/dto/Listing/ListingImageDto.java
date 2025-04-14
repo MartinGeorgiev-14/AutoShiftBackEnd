@@ -6,5 +6,5 @@ import lombok.Data;
 public class ListingImageDto {
     private boolean isMain;
     private String type;
-    private byte[] imageData;
+    private String url;
 }

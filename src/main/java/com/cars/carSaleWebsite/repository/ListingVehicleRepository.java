@@ -1,6 +1,9 @@
 package com.cars.carSaleWebsite.repository;
 
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
+import com.cars.carSaleWebsite.models.entities.user.UserEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -26,5 +29,7 @@ public interface ListingVehicleRepository extends JpaRepository<ListingVehicle, 
             "JOIN b.type t " +
             "WHERE t.type = 'Car'")
     HashSet<ListingVehicle> getAllCars();
+
+   Page<ListingVehicle> findAllByUserEntity(UserEntity userEntity, Pageable pageable);
 
 }

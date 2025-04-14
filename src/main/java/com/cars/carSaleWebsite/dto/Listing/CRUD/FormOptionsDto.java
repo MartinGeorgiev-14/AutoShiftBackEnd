@@ -1,6 +1,7 @@
 package com.cars.carSaleWebsite.dto.Listing.CRUD;
 
 import com.cars.carSaleWebsite.models.entities.vehicle.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.HashSet;
@@ -18,4 +19,8 @@ public class FormOptionsDto {
 
     private HashSet<Region> regionOptions;
     private HashSet<Location> locationOptions;
+
+    private HashSet<EuroStandard> euroStandardOptions;
+
+    private HashSet<Color> colorOptions;
 }

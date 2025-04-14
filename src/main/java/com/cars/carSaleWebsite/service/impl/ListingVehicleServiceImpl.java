@@ -70,6 +70,8 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
    private final RegionRepository regionRepository;
    private final BodyCreator bodyCreator;
    private final MessageCreator messageCreator;
+   private final EuroStandardRepository euroStandardRepository;
+   private final ColorRepository colorRepository;
 
     @Autowired
     public ListingVehicleServiceImpl(ListingVehicleRepository listingVehicleRepository, UserEntityRepository userEntityRepository,
@@ -81,7 +83,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
                                      ObjectMapper objectMapper, FilterMapper filterMapper,
                                      JWTGenerator jwtGenerator, TypeRepository typeRepository,
                                      MakeRepository makeRepository, RegionRepository regionRepository,
-                                     BodyCreator bodyCreator, MessageCreator messageCreator) {
+                                     BodyCreator bodyCreator, MessageCreator messageCreator, EuroStandardRepository euroStandardRepository, ColorRepository colorRepository) {
         this.listingVehicleRepository = listingVehicleRepository;
         this.userEntityRepository = userEntityRepository;
         this.listingCarMapper = listingCarMapper;
@@ -102,6 +104,8 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
         this.regionRepository = regionRepository;
         this.bodyCreator = bodyCreator;
         this.messageCreator = messageCreator;
+        this.euroStandardRepository = euroStandardRepository;
+        this.colorRepository = colorRepository;
     }
 
     @Override
@@ -110,7 +114,9 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
             ListingVehicle car = listingVehicleRepository.findCarById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing was not found"));
             UserEntity user = userEntityRepository.findById(car.getUserEntity().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
             UserEntityDto mappedUser = userEntityMapper.toDTO(user);
-            ListingCarDto mappedListing = listingCarMapper.toDTO(car, mappedUser);
+            List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(car);
+
+            ListingCarDto mappedListing = listingCarMapper.toDTO(car, mappedUser, images);
 
             Map<String, Object> body = bodyCreator.create();
             Message message = messageCreator.create(false, "Listing Found", "The listing you've searched has been found", "success");
@@ -176,7 +182,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
            UserEntityDto mappedUser = userEntityMapper.toDTO(user);
            List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(c);
 
-           ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser);
+           ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser, images);
 
            return mappedListing;
 
@@ -186,46 +192,50 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
     }
 
     @Override
-    public CarPaginationResponse getByPage(int pageNo, int pageSize) {
-        String id = getCurrentUserId();
-        UserEntity user = userEntityRepository.findById(UUID.fromString(id)).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    public Map<String, Object> getByPage(int pageNo, int pageSize, String sortBy, String sortDirection) {
+        try{
+            String userId = getCurrentUserId();
+            UserEntity user = userEntityRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User was not found"));
+            Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+            Pageable pageRequest = PageRequest.of(pageNo, pageSize, sort);
+            Page<ListingVehicle> listings = listingVehicleRepository.findAllByUserEntity(user, pageRequest);
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<ListingVehicle> cars = null;
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null) {
 
-        if (authentication != null) {
             for (GrantedAuthority authority : authentication.getAuthorities()) {
                 if (authority.getAuthority().equals("ROLE_ADMIN")) {
-                    cars = listingVehicleRepository.findAll(pageable);
-                }
-                else{
-                    cars = listingVehicleRepository.findAll(ListingSpecification.filterForUser(user.getId()), pageable);
+                    listings = listingVehicleRepository.findAll(pageRequest);
                 }
             }
         }
 
-        HashSet<ListingCarDto> content = (HashSet<ListingCarDto>) cars.stream().map(c -> {
-            UserEntity user2 = userEntityRepository.findById(c.getUserEntity().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
-            UserEntityDto mappedUser = userEntityMapper.toDTO(user2);
-            List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(c);
+            HashSet<ListingCarDto> content = listings.stream().map(c -> {
+                List<ListingImage> images = listingImageRepository.getAllListingImagesByListing(c);
+                List<ListingImageDto> mappedImages =  listingImageService.getAllImagesOfListingById(c);
+                UserEntityDto mappeedUser = userEntityMapper.toDTO(user);
+                ListingCarDto mapped = listingCarMapper.toDTO(c, mappeedUser, mappedImages);
 
-            ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser);
+                return mapped;
+            }).collect(Collectors.toCollection(HashSet::new));
 
-            return mappedListing;
-        }).collect(Collectors.toSet());
+            CarPaginationResponse response = listingCarMapper.toPegination(listings, content);
 
+            Map<String, Object> body = bodyCreator.create();
+            Message message = messageCreator.create(false, "Listings Found", "The listing you've searched have been found", "success");
 
-        CarPaginationResponse carPaginationResponse = new CarPaginationResponse();
-        carPaginationResponse.setContent(content);
-        carPaginationResponse.setPageNo(cars.getNumber());
-        carPaginationResponse.setPageSize(cars.getSize());
-        carPaginationResponse.setTotalPages(cars.getTotalPages());
-        carPaginationResponse.setTotalElements(cars.getTotalElements());
-        carPaginationResponse.setFirst(cars.isFirst());
-        carPaginationResponse.setLast(cars.isLast());
+            body.put("listings", response);
+            body.put("message", message);
+            body.put("status", HttpStatus.OK.value());
 
-        return carPaginationResponse;
+            return body;
+        } catch (ResponseStatusException ex) {
+            return createErrorResponse(ex.getReason(), ex.getStatusCode());
+        }
+        catch (Exception ex){
+            return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
     }
 
     @Override
@@ -299,7 +309,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
             UserEntityDto mappedUser = userEntityMapper.toDTO(user);
             List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(c);
 
-            ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser);
+            ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser, images);
 
             return mappedListing;
         }).collect(Collectors.toSet());
@@ -334,34 +344,56 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
     }
 
     @Override
-    public FormOptionsDto getAllFormOptions() {
-        FormOptionsDto options = new FormOptionsDto();
+    public Map<String, Object> getAllFormOptions() {
+        try{
+            FormOptionsDto options = new FormOptionsDto();
 
-        HashSet<Engine> engines = engineRepository.getAll();
-        HashSet<Gearbox> gearboxes = gearboxRepository.getAll();
+            HashSet<Engine> engines = engineRepository.getAll();
+            HashSet<Gearbox> gearboxes = gearboxRepository.getAll();
 
-        HashSet<Type> types = typeRepository.getAll();
-        HashSet<Body> bodies = bodyRepository.getAll();
+            HashSet<Type> types = typeRepository.getAll();
+            HashSet<Body> bodies = bodyRepository.getAll();
 
-        HashSet<Make> makes = makeRepository.getAll();
-        HashSet<Model> models = modelRepository.getALl();
+            HashSet<Make> makes = makeRepository.getAll();
+            HashSet<Model> models = modelRepository.getAll();
 
-        HashSet<Region> regions = regionRepository.getAll();
-        HashSet<Location> locations = locationRepository.getAll();
+            HashSet<Region> regions = regionRepository.getAll();
+            HashSet<Location> locations = locationRepository.getAll();
 
-        options.setEngineOptions(engines);
-        options.setGearboxOptions(gearboxes);
+            HashSet<EuroStandard> euroStandards = euroStandardRepository.getAll();
 
-        options.setTypeOptions(types);
-        options.setBodyOptions(bodies);
+            HashSet<Color> colors = colorRepository.getAll();
 
-        options.setMakeOptions(makes);
-        options.setModelOptions(models);
+            options.setEngineOptions(engines);
+            options.setGearboxOptions(gearboxes);
 
-        options.setRegionOptions(regions);
-        options.setLocationOptions(locations);
+            options.setTypeOptions(types);
+            options.setBodyOptions(bodies);
 
-        return options;
+            options.setMakeOptions(makes);
+            options.setModelOptions(models);
+
+            options.setRegionOptions(regions);
+            options.setLocationOptions(locations);
+
+            options.setEuroStandardOptions(euroStandards);
+
+            options.setColorOptions(colors);
+
+            Map<String, Object> body = bodyCreator.create();
+            Message message = messageCreator.create(false, "Options Found", "The options you've searched have been found", "success");
+
+            body.put("options", options);
+            body.put("message", message);
+            body.put("status", HttpStatus.OK.value());
+
+            return body;
+        } catch (ResponseStatusException ex) {
+            return createErrorResponse(ex.getReason(), ex.getStatusCode());
+        }
+        catch (Exception ex){
+            return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 
 
@@ -387,6 +419,11 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
     private String getCurrentUserId(){
         String token = (String) getJWTFromRequest();
+
+        if(token == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You need to login in order to see your listings");
+        }
+
         return jwtGenerator.getUserIdFromJWT(token);
     }
 

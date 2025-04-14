@@ -25,7 +25,6 @@ public class ListingVehicle {
     private Date editedAt;
     private Integer horsepower;
     private Integer mileage;
-    private Integer cubicCentimeters;
 
     @Column(length = 5000)
     private String description;

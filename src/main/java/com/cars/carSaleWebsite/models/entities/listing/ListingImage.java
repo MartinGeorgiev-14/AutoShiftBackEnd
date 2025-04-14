@@ -12,9 +12,7 @@ import java.util.UUID;
 public class ListingImage extends BaseAbstract {
     private boolean isMain;
     private String type;
-    @Lob
-    @Basic(fetch = FetchType.LAZY)
-    @Column(length = 10_000_000)
+
     private String url;
 
     @ManyToOne

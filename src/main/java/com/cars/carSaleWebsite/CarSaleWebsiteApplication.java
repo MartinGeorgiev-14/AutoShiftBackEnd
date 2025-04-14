@@ -2,14 +2,20 @@ package com.cars.carSaleWebsite;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import com.cloudinary.*;
+import com.cloudinary.utils.ObjectUtils;
+import io.github.cdimascio.dotenv.Dotenv;
+
+import java.io.IOException;
+import java.util.Map;
 
 @SpringBootApplication
 public class CarSaleWebsiteApplication {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		SpringApplication.run(CarSaleWebsiteApplication.class, args);
+		Dotenv dotenv = Dotenv.load();
+		Cloudinary cloudinary = new Cloudinary(dotenv.get("CLOUDINARY_URL"));
 	}
 
 }
