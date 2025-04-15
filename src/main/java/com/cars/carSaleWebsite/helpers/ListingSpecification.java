@@ -2,6 +2,8 @@ package com.cars.carSaleWebsite.helpers;
 
 import com.cars.carSaleWebsite.dto.Listing.FilterDto;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
+import com.cars.carSaleWebsite.models.entities.vehicle.Color;
+import org.springframework.boot.autoconfigure.rsocket.RSocketProperties;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +24,9 @@ public class ListingSpecification {
                         .and(byLocation(filter.getLocation()))
                         .and(byGearbox(filter.getGearbox()))
                         .and(byEngine(filter.getEngine()))
-                        .and(byPriceRange(filter.getStartPrice(), filter.getEndPrice())));
+                        .and(byPriceRange(filter.getStartPrice(), filter.getEndPrice()))
+                        .and(byColor(filter.getColor()))
+                        .and(byEuroStandard(filter.getEuroStandard())));
     }
 
     public static Specification<ListingVehicle> filterForUser(UUID id){
@@ -79,6 +83,7 @@ public class ListingSpecification {
 
     private static Specification<ListingVehicle> byPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
         return (root, query, criteriaBuilder) -> {
+
             if (minPrice != null && maxPrice != null) {
                 return criteriaBuilder.between(root.get("price"), minPrice, maxPrice);
             }
@@ -91,4 +96,15 @@ public class ListingSpecification {
             return criteriaBuilder.conjunction();
         };
     }
+
+    private static Specification<ListingVehicle> byColor(UUID color){
+        return (root, query, criteriaBuilder) ->
+                color != null ? criteriaBuilder.equal(root.get("color").get("id"), color) : criteriaBuilder.conjunction();
+    }
+
+    private static Specification<ListingVehicle> byEuroStandard(UUID standard){
+        return (root, query, criteriaBuilder) ->
+                standard != null ? criteriaBuilder.equal(root.get("standard").get("id"), standard) : criteriaBuilder.conjunction();
+    }
+
 }

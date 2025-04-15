@@ -96,7 +96,7 @@ public class ListingCarMapper {
         return newCar;
     }
 
-    public CarPaginationResponse toPegination(Page<ListingVehicle> listings, HashSet<ListingCarDto> content){
+    public CarPaginationResponse toPegination(Page<ListingVehicle> listings, List<ListingCarDto> content){
         CarPaginationResponse mapped = new CarPaginationResponse();
 
         mapped.setContent(content);

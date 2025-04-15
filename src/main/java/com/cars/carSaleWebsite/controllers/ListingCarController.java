@@ -79,16 +79,21 @@ public class ListingCarController {
     }
 
     @PostMapping("app/search")
-    public ResponseEntity<CarPaginationResponse> getListings(
+    public ResponseEntity<Map<String, Object>> getListings(
             @RequestBody(required = false) FilterDto filterDto,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(value = "pageNo", defaultValue = "0") int page,
+            @RequestParam(value = "pageSize", defaultValue = "10") int size,
+            @RequestParam(value = "sortBy", defaultValue = "Price", required = false) String sortBy,
+            @RequestParam(value = "sortDirection", defaultValue = "ASC", required = false) String sortDirection) {
 
+        Map<String, Object> body = listingVehicleService.searchCarByCriteria(filterDto, page, size, sortBy, sortDirection);
+        Integer status = (Integer) body.get("status");
 
+        if(status != 200){
+            return  new ResponseEntity<>(body, HttpStatus.valueOf(status));
+        }
 
-        return new ResponseEntity<>(listingVehicleService.searchCarByCriteria(filterDto, page, size), HttpStatus.OK);
-
-
+        return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
     @PostMapping(path = "app/create", consumes = {"multipart/form-data"})

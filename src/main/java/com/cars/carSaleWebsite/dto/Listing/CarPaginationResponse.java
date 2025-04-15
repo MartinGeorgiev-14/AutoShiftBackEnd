@@ -3,10 +3,11 @@ package com.cars.carSaleWebsite.dto.Listing;
 import lombok.Data;
 
 import java.util.HashSet;
+import java.util.List;
 
 @Data
 public class CarPaginationResponse {
-    private HashSet<ListingCarDto> content;
+    private List<ListingCarDto> content;
     private int PageNo;
     private int PageSize;
     private long totalElements;

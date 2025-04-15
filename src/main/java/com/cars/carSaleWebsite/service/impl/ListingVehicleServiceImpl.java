@@ -16,6 +16,7 @@ import com.cars.carSaleWebsite.models.entities.listing.ListingImage;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
 import com.cars.carSaleWebsite.models.entities.vehicle.*;
+import com.cars.carSaleWebsite.models.entities.vehicle.Color;
 import com.cars.carSaleWebsite.models.nonEntity.Message;
 import com.cars.carSaleWebsite.repository.*;
 import com.cars.carSaleWebsite.security.JWTGenerator;
@@ -42,9 +43,11 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.awt.*;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service("listingCarService")
@@ -210,14 +213,14 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
             }
         }
 
-            HashSet<ListingCarDto> content = listings.stream().map(c -> {
+            List<ListingCarDto> content = listings.stream().map(c -> {
                 List<ListingImage> images = listingImageRepository.getAllListingImagesByListing(c);
                 List<ListingImageDto> mappedImages =  listingImageService.getAllImagesOfListingById(c);
                 UserEntityDto mappeedUser = userEntityMapper.toDTO(user);
                 ListingCarDto mapped = listingCarMapper.toDTO(c, mappeedUser, mappedImages);
 
                 return mapped;
-            }).collect(Collectors.toCollection(HashSet::new));
+            }).collect(Collectors.toList());
 
             CarPaginationResponse response = listingCarMapper.toPegination(listings, content);
 
@@ -295,36 +298,47 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
     @Transactional
     @Override
-    public CarPaginationResponse searchCarByCriteria(FilterDto filterDto, int pageNo, int pageSize) {
+    public Map<String, Object> searchCarByCriteria(FilterDto filterDto, int pageNo, int pageSize, String sortBy, String sortDirection) {
+        try{
+            Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+            Pageable pageRequest = PageRequest.of(pageNo, pageSize, sort);
 
-        PageRequest pageRequest = PageRequest.of(pageNo, pageSize, Sort.by(Sort.Direction.ASC, "price"));
+            Page<ListingVehicle> listings = listingVehicleRepository.findAll(
+                    ListingSpecification.filters(filterDto),
+                    pageRequest);
+
+            List<ListingCarDto> content = listings.stream().map(c -> {
+                UserEntity user = userEntityRepository.findById(c.getUserEntity().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
+                UserEntityDto mappedUser = userEntityMapper.toDTO(user);
+                List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(c);
+
+                ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser, images);
+
+                return mappedListing;
+            }).collect(Collectors.toList());
 
 
-        Page<ListingVehicle> listings = listingVehicleRepository.findAll(
-                ListingSpecification.filters(filterDto),
-                pageRequest);
+            CarPaginationResponse response = new CarPaginationResponse();
+            response.setContent(content);
+            response.setPageNo(listings.getNumber());
+            response.setPageSize(listings.getSize());
+            response.setTotalPages(listings.getTotalPages());
+            response.setTotalElements(listings.getTotalElements());
+            response.setFirst(listings.isFirst());
+            response.setLast(listings.isLast());
 
-        HashSet<ListingCarDto> content = (HashSet<ListingCarDto>) listings.stream().map(c -> {
-            UserEntity user = userEntityRepository.findById(c.getUserEntity().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
-            UserEntityDto mappedUser = userEntityMapper.toDTO(user);
-            List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(c);
+            Map<String, Object> body = bodyCreator.create();
+            Message message = messageCreator.create(false, "Success", "Successfully found listings based on the given criteria", "success");
 
-            ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser, images);
+            body.put("listings", response);
+            body.put("message", message);
+            body.put("status", HttpStatus.OK.value());
 
-            return mappedListing;
-        }).collect(Collectors.toSet());
+            return body;
+        } catch (Exception ex) {
+            return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
 
-
-        CarPaginationResponse response = new CarPaginationResponse();
-        response.setContent(content);
-        response.setPageNo(listings.getNumber());
-        response.setPageSize(listings.getSize());
-        response.setTotalPages(listings.getTotalPages());
-        response.setTotalElements(listings.getTotalElements());
-        response.setFirst(listings.isFirst());
-        response.setLast(listings.isLast());
-
-        return response;
     }
 
     @Override

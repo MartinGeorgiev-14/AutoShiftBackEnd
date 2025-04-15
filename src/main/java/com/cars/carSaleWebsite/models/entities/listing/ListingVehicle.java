@@ -19,6 +19,7 @@ public class ListingVehicle {
     private UUID id;
 
     private Boolean isActive;
+    @Column(name = "price")
     private BigDecimal price;
     private Date manufactureDate;
     private Date createdAt;

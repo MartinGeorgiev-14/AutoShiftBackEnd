@@ -20,7 +20,7 @@ public interface ListingVehicleService {
     Map<String, Object> getByPage(int pageNo, int pageSize, String sortBy, String sortDirection);
     String deleteCarById(UUID id);
     String updateCar(CreateCarListingDto carDto, UUID id) throws IOException;
-    CarPaginationResponse searchCarByCriteria(FilterDto searchDto, int pageNo, int pageSize);
+    Map<String, Object> searchCarByCriteria(FilterDto filterDto, int pageNo, int pageSize, String sortBy, String sortDirection);
     boolean canAccessListing(String listingId);
     Map<String, Object> getAllFormOptions();
 }

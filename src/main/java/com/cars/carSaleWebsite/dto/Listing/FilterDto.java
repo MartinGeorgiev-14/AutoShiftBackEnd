@@ -17,6 +17,8 @@ public class FilterDto {
     private UUID gearbox;
     private UUID type;
     private UUID body;
+    private UUID color;
+    private UUID euroStandard;
     private Date startYear;
     private Date endYear;
     private BigDecimal startPrice;
