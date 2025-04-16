@@ -15,10 +15,10 @@ import java.util.UUID;
 
 public interface ListingVehicleService {
     Map<String, Object> getListingById(UUID id);
-    String createCarListing(CreateCarListingDto car, List<MultipartFile> images) throws IOException;
+    Map<String, Object> createCarListing(CreateCarListingDto car, List<MultipartFile> images) throws IOException;
     HashSet<ListingCarDto> getAllCars();
     Map<String, Object> getByPage(int pageNo, int pageSize, String sortBy, String sortDirection);
-    String deleteCarById(UUID id);
+    Map<String, Object> deleteCarById(UUID id);
     String updateCar(CreateCarListingDto carDto, UUID id) throws IOException;
     Map<String, Object> searchCarByCriteria(FilterDto filterDto, int pageNo, int pageSize, String sortBy, String sortDirection);
     boolean canAccessListing(String listingId);

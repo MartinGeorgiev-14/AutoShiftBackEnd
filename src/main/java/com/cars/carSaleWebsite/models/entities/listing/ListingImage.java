@@ -15,6 +15,8 @@ public class ListingImage extends BaseAbstract {
 
     private String url;
 
+    private String publicId;
+
     @ManyToOne
     @JoinColumn(name = "listing_id", nullable = false, columnDefinition = "UUID")
     private ListingVehicle listingId;

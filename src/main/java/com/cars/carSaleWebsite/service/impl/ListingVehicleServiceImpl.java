@@ -22,6 +22,8 @@ import com.cars.carSaleWebsite.repository.*;
 import com.cars.carSaleWebsite.security.JWTGenerator;
 import com.cars.carSaleWebsite.service.ListingVehicleService;
 import com.cars.carSaleWebsite.service.ListingImageService;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +45,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.swing.text.StyledEditorKit;
 import java.awt.*;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.List;
@@ -139,18 +143,23 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
     @Override
     @Transactional
-    public String createCarListing(CreateCarListingDto car, List<MultipartFile> images) throws IOException {
+    public Map<String, Object> createCarListing(CreateCarListingDto car, List<MultipartFile> images) throws IOException {
+
+        try{
+            hasNullProps(car);
 
             String userId = getCurrentUserId();
+            Cloudinary cloudinary = new Cloudinary();
 
-            UserEntity user = userEntityRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new NotFoundException("User was not found"));
-            Model model = modelRepository.findById(car.getModel()).orElseThrow(() -> new NotFoundException("Model not found"));
-            Engine engine = engineRepository.findById(car.getEngine()).orElseThrow(() -> new NotFoundException("Engine not found"));
-            Gearbox gearbox = gearboxRepository.findById(car.getGearbox()).orElseThrow(() -> new NotFoundException("Gearbox not found"));
-            Body body = bodyRepository.findById(car.getBody()).orElseThrow(() -> new NotFoundException("Body not found"));
-            Location location = locationRepository.findById(car.getLocation()).orElseThrow(() -> new NotFoundException("Location is not found"));
-
-            ListingVehicle newListing = listingCarMapper.toEntity(car, user, model, engine, gearbox, body, location);
+            UserEntity user = userEntityRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User was not found"));
+            Model model = modelRepository.findById(car.getModel()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Model was not found"));
+            Engine engine = engineRepository.findById(car.getEngine()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Engine was not found"));
+            Gearbox gearbox = gearboxRepository.findById(car.getGearbox()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Gearbox was not found"));
+            Body body = bodyRepository.findById(car.getBody()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Body type was not found"));
+            Location location = locationRepository.findById(car.getLocation()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Location was not found"));
+            Color color = colorRepository.findById(car.getColor()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Color was not found"));
+            EuroStandard euroStandard = euroStandardRepository.findById(car.getEuroStandard()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Euro Standard was not found"));
+            ListingVehicle newListing = listingCarMapper.toEntity(car, user, model, engine, gearbox, body, location, color, euroStandard);
 
             listingVehicleRepository.save(newListing);
 
@@ -158,8 +167,11 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
                 for (int i = 0; i < images.size(); i++) {
                     ListingImage listImage = new ListingImage();
 
+                    Map uploadResult = cloudinary.uploader().upload(images.get(i).getBytes(), ObjectUtils.emptyMap());
+
                     listImage.setType(images.get(i).getContentType());
-//                    listImage.setImageData(images.get(i).getBytes());
+                    listImage.setUrl(uploadResult.get("secure_url").toString());
+                    listImage.setPublicId(uploadResult.get("public_id").toString());
                     listImage.setListingId(newListing);
                     listImage.setMain(true);
 
@@ -173,7 +185,28 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
                 }
             }
-            return "The car has been saved successfully!";
+
+            Map<String, Object> bodyResponse = bodyCreator.create();
+            Message message = messageCreator.create(true, "Listing Created", "The car has been saved successfully!", "success");
+            UserEntityDto mappedUser = userEntityMapper.toDTO(user);
+            List<ListingImageDto> listingImages = listingImageService.getAllImagesOfListingById(newListing);
+
+            ListingCarDto mappedNewListing = listingCarMapper.toDTO(newListing, mappedUser, listingImages);
+
+            bodyResponse.put("listing", mappedNewListing);
+            bodyResponse.put("message", message);
+            bodyResponse.put("status", HttpStatus.CREATED.value());
+            return bodyResponse;
+
+        } catch (ResponseStatusException ex) {
+            String reason = ex.getReason();
+            return createErrorResponse(ex.getReason(), ex.getStatusCode());
+        }
+            catch (Exception ex){
+            return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
+
     }
 
     @Override
@@ -243,13 +276,27 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
     @Override
     @Transactional
-    public String deleteCarById(UUID id) {
+    public Map<String, Object> deleteCarById(UUID id) {
 
-        ListingVehicle car = listingVehicleRepository.findCarById(id).orElseThrow(() -> new NotFoundException("Listing was not found"));
-        listingImageRepository.deleteListingById(car);
-        listingVehicleRepository.deleteById(car.getId());
+        try {
+            ListingVehicle car = listingVehicleRepository.findCarById(id).orElseThrow(() -> new NotFoundException("Listing was not found"));
+            listingImageRepository.deleteListingById(car);
+            listingVehicleRepository.deleteById(car.getId());
 
-        return "Listing has been deleted successfully";
+            Map<String, Object> body = bodyCreator.create();
+            Message message = messageCreator.create(true, "Listings Deleted", "Listing has been deleted successfully", "success");
+
+            body.put("message", message);
+            body.put("status", HttpStatus.OK.value());
+
+            return body;
+        } catch (ResponseStatusException ex) {
+            return createErrorResponse(ex.getReason(), ex.getStatusCode());
+        }
+        catch (Exception ex){
+            return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
     }
 
     @Override
@@ -265,7 +312,8 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
         Body body = bodyRepository.findByIdOrNull(carDto.getBody()).orElse(null);
         Location location = locationRepository.findByIdOrNull(carDto.getLocation()).orElse(null);
 
-        ListingVehicle newcar = listingCarMapper.toEntity(carDto, user, model, engine, gearbox, body, location);
+//        ListingVehicle newcar = listingCarMapper.toEntity(carDto, user, model, engine, gearbox, body, location);
+        ListingVehicle newcar = new ListingVehicle();
         newcar.setId(nowcar.getId());
 
         patch(nowcar, newcar);
@@ -275,19 +323,19 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
         //Modifying images
         List<ListingImage> imagesDb = listingImageRepository.getAllListingImagesByListing(newcar);
 //        ListingImage newMainImg = listingImageRepository.findById(carDto.getMainImgId()).orElse(null);
-        Optional<ListingImage> newMainImg = Optional.ofNullable(carDto.getMainImgId())
-                .flatMap(listingImageRepository::findById);
+//        Optional<ListingImage> newMainImg = Optional.ofNullable(carDto.getMainImgId())
+//                .flatMap(listingImageRepository::findById);
 
-
-        if (imagesDb.contains(newMainImg)){
-            for (ListingImage image : imagesDb){
-                image.setMain(false);
-
-                if (image.equals(newMainImg)){
-                    image.setMain(true);
-                }
-            }
-        }
+//
+//        if (imagesDb.contains(newMainImg)){
+//            for (ListingImage image : imagesDb){
+//                image.setMain(false);
+//
+//                if (image.equals(newMainImg)){
+//                    image.setMain(true);
+//                }
+//            }
+//        }
 
 
 
@@ -435,7 +483,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
         String token = (String) getJWTFromRequest();
 
         if(token == null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You need to login in order to see your listings");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You need to login");
         }
 
         return jwtGenerator.getUserIdFromJWT(token);
@@ -461,6 +509,23 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
         body.put("status", status.value());
 
         return body;
+    }
+
+    private void hasNullProps (Object obj) throws IllegalAccessException {
+            Boolean areNulls = false;
+            List<String> nullProps = new ArrayList<>();
+
+            for (Field field : obj.getClass().getDeclaredFields()){
+                field.setAccessible(true);
+                if(field.get(obj) == null){
+                    nullProps.add(field.getName());
+                    areNulls = true;
+                }
+            }
+
+            if(areNulls){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join(", ", nullProps) + " are empty");
+            }
     }
 }
 

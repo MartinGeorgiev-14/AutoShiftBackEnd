@@ -97,14 +97,22 @@ public class ListingCarController {
     }
 
     @PostMapping(path = "app/create", consumes = {"multipart/form-data"})
-    public ResponseEntity<String> postCar(@ModelAttribute CreateCarListingDto car,
+    public ResponseEntity<Map<String, Object>> postCar(@ModelAttribute CreateCarListingDto car,
                                           @RequestPart("uploadImages") List<MultipartFile> uploadImages) throws IOException {
-        return new ResponseEntity<>(listingVehicleService.createCarListing(car, uploadImages), HttpStatus.CREATED);
+
+        Map<String, Object> body = listingVehicleService.createCarListing(car, uploadImages);
+        Integer status = (Integer) body.get("status");
+
+        if(status != 201){
+            return  new ResponseEntity<>(body, HttpStatus.valueOf(status));
+        }
+
+        return new ResponseEntity<>(body, HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasRole('ADMIN') or @listingCarService.canAccessListing(#listingId)")
     @DeleteMapping("app/delete/{listingId}")
-    public ResponseEntity<String> deleteCarById(@PathVariable UUID listingId){
+    public Map<String, Object> deleteCarById(@PathVariable UUID listingId){
         String response = listingVehicleService.deleteCarById(listingId);
 
         return new ResponseEntity<>(response, HttpStatus.OK);

@@ -50,7 +50,7 @@ public class ListingCarMapper {
         car.setIsActive(vehicle.getIsActive());
         car.setManufactureDate(vehicle.getManufactureDate());
         car.setColor(vehicle.getColor().getColor());
-        car.setColor(vehicle.getColor().getColor());
+        car.setEuroStandard(vehicle.getEuroStandard().getStandard());
         car.setUser(mappedUser);
         car.setRegion(vehicle.getLocation().getRegion().getRegion());
         car.setLocation(vehicle.getLocation().getLocation());
@@ -77,7 +77,7 @@ public class ListingCarMapper {
         return car;
     }
 
-    public ListingVehicle toEntity(CreateCarListingDto car, UserEntity user, Model model, Engine engine, Gearbox gearbox, Body body, Location location){
+    public ListingVehicle toEntity(CreateCarListingDto car, UserEntity user, Model model, Engine engine, Gearbox gearbox, Body body, Location location, Color color, EuroStandard euroStandard){
         ListingVehicle newCar = new ListingVehicle();
 
         newCar.setPrice(car.getPrice());
@@ -92,6 +92,10 @@ public class ListingCarMapper {
         newCar.setBody(body);
         newCar.setUserEntity(user);
         newCar.setLocation(location);
+        newCar.setColor(color);
+        newCar.setEuroStandard(euroStandard);
+        newCar.setIsActive(true);
+        newCar.setManufactureDate(car.getManufactureDate());
 
         return newCar;
     }

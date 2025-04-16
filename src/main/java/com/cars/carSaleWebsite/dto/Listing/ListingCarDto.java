@@ -30,7 +30,6 @@ public class ListingCarDto
     private String euroStandard;
     private Boolean isActive;
     private Date manufactureDate;
-    private Integer cubicCentimeters;
     private String type;
     private String body;
     private String location;
