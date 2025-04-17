@@ -80,6 +80,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
    private final EuroStandardRepository euroStandardRepository;
    private final ColorRepository colorRepository;
 
+
     @Autowired
     public ListingVehicleServiceImpl(ListingVehicleRepository listingVehicleRepository, UserEntityRepository userEntityRepository,
                                      ListingCarMapper listingCarMapper, ListingImageRepository listingImageRepository,
@@ -90,7 +91,8 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
                                      ObjectMapper objectMapper, FilterMapper filterMapper,
                                      JWTGenerator jwtGenerator, TypeRepository typeRepository,
                                      MakeRepository makeRepository, RegionRepository regionRepository,
-                                     BodyCreator bodyCreator, MessageCreator messageCreator, EuroStandardRepository euroStandardRepository, ColorRepository colorRepository) {
+                                     BodyCreator bodyCreator, MessageCreator messageCreator, EuroStandardRepository euroStandardRepository,
+                                     ColorRepository colorRepository) {
         this.listingVehicleRepository = listingVehicleRepository;
         this.userEntityRepository = userEntityRepository;
         this.listingCarMapper = listingCarMapper;
@@ -113,6 +115,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
         this.messageCreator = messageCreator;
         this.euroStandardRepository = euroStandardRepository;
         this.colorRepository = colorRepository;
+
     }
 
     @Override
@@ -279,12 +282,19 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
     public Map<String, Object> deleteCarById(UUID id) {
 
         try {
-            ListingVehicle car = listingVehicleRepository.findCarById(id).orElseThrow(() -> new NotFoundException("Listing was not found"));
+            ListingVehicle car = listingVehicleRepository.findCarById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing cannot be found"));
+            List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(car);
+            Cloudinary cloud = new Cloudinary();
+
+            for(ListingImageDto image : images){
+                cloud.uploader().destroy(image.getPublicId(), ObjectUtils.emptyMap());
+            }
+
             listingImageRepository.deleteListingById(car);
-            listingVehicleRepository.deleteById(car.getId());
+            listingVehicleRepository.delete(car);
 
             Map<String, Object> body = bodyCreator.create();
-            Message message = messageCreator.create(true, "Listings Deleted", "Listing has been deleted successfully", "success");
+            Message message = messageCreator.create(true, "Listing Deleted", "Listing has been deleted successfully", "success");
 
             body.put("message", message);
             body.put("status", HttpStatus.OK.value());

@@ -23,5 +23,7 @@ public interface ListingImageRepository extends JpaRepository<ListingImage, UUID
     @Modifying
     @Query("DELETE FROM ListingImage li WHERE li.listingId = :listingId")
     void deleteListingById(@Param("listingId") ListingVehicle listingId);
+
+
 }
 

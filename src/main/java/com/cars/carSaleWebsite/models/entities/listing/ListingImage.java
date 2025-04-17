@@ -17,7 +17,7 @@ public class ListingImage extends BaseAbstract {
 
     private String publicId;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "listing_id", nullable = false, columnDefinition = "UUID")
     private ListingVehicle listingId;
 

@@ -44,6 +44,7 @@ public class ListingImageServiceImpl implements ListingImageService {
         newItem.setType(list.getType());
         newItem.setMain(list.getIsMain());
         newItem.setUrl(list.getUrl());
+        newItem.setPublicId(list.getPublicId());
 
         return newItem;
     }

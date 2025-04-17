@@ -112,10 +112,17 @@ public class ListingCarController {
 
     @PreAuthorize("hasRole('ADMIN') or @listingCarService.canAccessListing(#listingId)")
     @DeleteMapping("app/delete/{listingId}")
-    public Map<String, Object> deleteCarById(@PathVariable UUID listingId){
-        String response = listingVehicleService.deleteCarById(listingId);
+    public ResponseEntity<Map<String, Object>> deleteCarById(@PathVariable UUID listingId){
 
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        Map<String, Object> body = listingVehicleService.deleteCarById(listingId);
+        Integer status = (Integer) body.get("status");
+
+        if(status != 200){
+            return new ResponseEntity<>(body, HttpStatus.valueOf(status));
+        }
+
+        return new ResponseEntity<>(body, HttpStatus.OK);
+
     }
 
     @PreAuthorize("hasRole('ADMIN') or @listingCarService.canAccessListing(#listingId)")
