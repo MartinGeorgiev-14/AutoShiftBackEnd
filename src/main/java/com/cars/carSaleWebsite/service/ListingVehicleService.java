@@ -5,6 +5,7 @@ import com.cars.carSaleWebsite.dto.Listing.CarPaginationResponse;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.CreateCarListingDto;
 import com.cars.carSaleWebsite.dto.Listing.FilterDto;
 import com.cars.carSaleWebsite.dto.Listing.ListingCarDto;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -19,7 +20,7 @@ public interface ListingVehicleService {
     HashSet<ListingCarDto> getAllCars();
     Map<String, Object> getByPage(int pageNo, int pageSize, String sortBy, String sortDirection);
     Map<String, Object> deleteCarById(UUID id);
-    String updateCar(CreateCarListingDto carDto, UUID id) throws IOException;
+    Map<String, Object> updateCar(CreateCarListingDto carDto, UUID id) throws IOException;
     Map<String, Object> searchCarByCriteria(FilterDto filterDto, int pageNo, int pageSize, String sortBy, String sortDirection);
     boolean canAccessListing(String listingId);
     Map<String, Object> getAllFormOptions();

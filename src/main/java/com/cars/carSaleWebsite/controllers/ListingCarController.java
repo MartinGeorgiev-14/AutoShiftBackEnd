@@ -122,14 +122,20 @@ public class ListingCarController {
         }
 
         return new ResponseEntity<>(body, HttpStatus.OK);
-
     }
 
     @PreAuthorize("hasRole('ADMIN') or @listingCarService.canAccessListing(#listingId)")
     @PatchMapping(path = "app/update/{listingId}")
-    public ResponseEntity<String> updateCar(@RequestBody CreateCarListingDto car, @PathVariable UUID listingId) throws IOException {
+    public ResponseEntity<Map<String, Object>> updateCar(@RequestBody CreateCarListingDto car, @PathVariable UUID listingId) throws IOException {
 
-        return new ResponseEntity<>(listingVehicleService.updateCar(car, listingId), HttpStatus.OK);
+        Map<String, Object> body = listingVehicleService.updateCar(car, listingId);
+        Integer status = (Integer) body.get("status");
+
+        if(status != 200){
+            return new ResponseEntity<>(body, HttpStatus.valueOf(status));
+        }
+
+        return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
 

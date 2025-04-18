@@ -33,6 +33,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -311,47 +312,63 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
     @Override
     @Transactional
-    public String updateCar(CreateCarListingDto carDto ,UUID id) throws IOException {
-        ListingVehicle nowcar = listingVehicleRepository.findCarById(id).orElseThrow(() -> new NotFoundException("Car was not found"));
+    public Map<String, Object> updateCar(CreateCarListingDto carDto , UUID id) throws IOException {
+        try{
+            ListingVehicle nowcar = listingVehicleRepository.findCarById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Car was not found"));
 
-        //Modifying listing
-        UserEntity user = userEntityRepository.findById(UUID.fromString(nowcar.getUserEntity().getId().toString())).orElseThrow(() -> new NotFoundException("User was not found"));
-        Model model = modelRepository.findByIdOrNull(carDto.getModel()).orElse(null);
-        Engine engine = engineRepository.findByIdOrNull(carDto.getEngine()).orElse(null);
-        Gearbox gearbox = gearboxRepository.findByIdOrNull(carDto.getGearbox()).orElse(null);
-        Body body = bodyRepository.findByIdOrNull(carDto.getBody()).orElse(null);
-        Location location = locationRepository.findByIdOrNull(carDto.getLocation()).orElse(null);
+            //Modifying listing
+            UserEntity user = userEntityRepository.findById(UUID.fromString(nowcar.getUserEntity().getId().toString())).orElseThrow(() -> new NotFoundException("User was not found"));
+            Model model = modelRepository.findByIdOrNull(carDto.getModel()).orElse(null);
+            Engine engine = engineRepository.findByIdOrNull(carDto.getEngine()).orElse(null);
+            Gearbox gearbox = gearboxRepository.findByIdOrNull(carDto.getGearbox()).orElse(null);
+            Body body = bodyRepository.findByIdOrNull(carDto.getBody()).orElse(null);
+            Location location = locationRepository.findByIdOrNull(carDto.getLocation()).orElse(null);
+            Color color = colorRepository.findByIdOrNull(carDto.getColor()).orElse(null);
+            EuroStandard euroStandard = euroStandardRepository.findByIdOrNull(carDto.getEuroStandard()).orElse(null);
 
-//        ListingVehicle newcar = listingCarMapper.toEntity(carDto, user, model, engine, gearbox, body, location);
-        ListingVehicle newcar = new ListingVehicle();
-        newcar.setId(nowcar.getId());
+            ListingVehicle newcar = listingCarMapper.toEntity(carDto, user, model, engine, gearbox, body, location, color, euroStandard);
+            newcar.setId(nowcar.getId());
 
-        patch(nowcar, newcar);
+            patch(nowcar, newcar);
 
-        listingVehicleRepository.save(nowcar);
+            listingVehicleRepository.save(nowcar);
 
-        //Modifying images
-        List<ListingImage> imagesDb = listingImageRepository.getAllListingImagesByListing(newcar);
-//        ListingImage newMainImg = listingImageRepository.findById(carDto.getMainImgId()).orElse(null);
+            //Modifying images
+
 //        Optional<ListingImage> newMainImg = Optional.ofNullable(carDto.getMainImgId())
 //                .flatMap(listingImageRepository::findById);
 
-//
-//        if (imagesDb.contains(newMainImg)){
-//            for (ListingImage image : imagesDb){
-//                image.setMain(false);
-//
-//                if (image.equals(newMainImg)){
-//                    image.setMain(true);
-//                }
-//            }
-//        }
+            if (carDto.getMainImgId() != null){
+                List<ListingImage> imagesDb = listingImageRepository.getAllListingImagesByListing(newcar);
+                ListingImage newMainImg = listingImageRepository.findById(carDto.getMainImgId()).orElse(null);
+
+                for (ListingImage image : imagesDb){
+                    image.setMain(false);
+
+                    if (image.equals(newMainImg)){
+                        image.setMain(true);
+                    }
+
+                    listingImageRepository.save(image);
+                }
+
+            }
+
+            Map<String, Object> bodyResponse = bodyCreator.create();
+            Message message = messageCreator.create(true, "Listing Updated", "Listing has been updated successfully", "success");
+
+            bodyResponse.put("message", message);
+            bodyResponse.put("status", HttpStatus.OK.value());
+
+            return bodyResponse;
+        } catch (ResponseStatusException ex) {
+            return createErrorResponse(ex.getReason(), ex.getStatusCode());
+        }
+        catch (Exception ex){
+            return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
 
 
-
-
-
-        return "Listing has been updated";
     }
 
     @Transactional

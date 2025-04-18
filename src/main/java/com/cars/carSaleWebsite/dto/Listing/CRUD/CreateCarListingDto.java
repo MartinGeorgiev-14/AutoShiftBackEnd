@@ -25,6 +25,7 @@ public class CreateCarListingDto {
     private UUID gearbox;
     private Integer engineDisplacement;
     private Integer mainImgIndex;
+    private UUID mainImgId;
 //    private UUID mainImgId;
 //    private List<ListingImageDto> images;
     private UUID color;
