@@ -19,8 +19,14 @@ public class FilterDto {
     private UUID body;
     private UUID color;
     private UUID euroStandard;
-    private Date startYear;
-    private Date endYear;
-    private BigDecimal startPrice;
-    private BigDecimal endPrice;
+    private Date dateStart;
+    private Date dateEnd;
+    private BigDecimal priceStart;
+    private BigDecimal priceEnd;
+    private Integer horsepowerStart;
+    private Integer horsepowerEnd;
+    private Integer mileageStart;
+    private Integer mileageEnd;
+    private Integer engineDisplacementStart;
+    private Integer engineDisplacementEnd;
 }

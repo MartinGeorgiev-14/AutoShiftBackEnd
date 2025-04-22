@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.UUID;
 
 @Component
@@ -24,9 +25,13 @@ public class ListingSpecification {
                         .and(byLocation(filter.getLocation()))
                         .and(byGearbox(filter.getGearbox()))
                         .and(byEngine(filter.getEngine()))
-                        .and(byPriceRange(filter.getStartPrice(), filter.getEndPrice()))
+                        .and(byPriceRange(filter.getPriceStart(), filter.getPriceEnd()))
                         .and(byColor(filter.getColor()))
-                        .and(byEuroStandard(filter.getEuroStandard())));
+                        .and(byEuroStandard(filter.getEuroStandard()))
+                        .and(byDateRange(filter.getDateStart(), filter.getDateEnd()))
+                        .and(byHorsepowerRange(filter.getHorsepowerStart(), filter.getHorsepowerEnd()))
+                        .and(byMileageRange(filter.getMileageStart(), filter.getMileageEnd()))
+                        .and(byEngineDisplacementRange(filter.getEngineDisplacementStart(), filter.getEngineDisplacementEnd())));
     }
 
     public static Specification<ListingVehicle> filterForUser(UUID id){
@@ -92,6 +97,70 @@ public class ListingSpecification {
             }
             if (maxPrice != null) {
                 return criteriaBuilder.lessThanOrEqualTo(root.get("price"), maxPrice);
+            }
+            return criteriaBuilder.conjunction();
+        };
+    }
+
+    private static Specification<ListingVehicle> byDateRange(Date minDate, Date maxDate) {
+        return (root, query, criteriaBuilder) -> {
+
+            if (minDate != null && maxDate != null) {
+                return criteriaBuilder.between(root.get("manufactureDate"), minDate, maxDate);
+            }
+            if (minDate != null) {
+                return criteriaBuilder.greaterThanOrEqualTo(root.get("manufactureDate"), minDate);
+            }
+            if (maxDate != null) {
+                return criteriaBuilder.lessThanOrEqualTo(root.get("manufactureDate"), maxDate);
+            }
+            return criteriaBuilder.conjunction();
+        };
+    }
+
+    private static Specification<ListingVehicle> byHorsepowerRange(Integer minHorsepower, Integer maxHorsepower) {
+        return (root, query, criteriaBuilder) -> {
+
+            if (minHorsepower != null && maxHorsepower != null) {
+                return criteriaBuilder.between(root.get("horsepower"), minHorsepower, maxHorsepower);
+            }
+            if (minHorsepower != null) {
+                return criteriaBuilder.greaterThanOrEqualTo(root.get("horsepower"), minHorsepower);
+            }
+            if (maxHorsepower != null) {
+                return criteriaBuilder.lessThanOrEqualTo(root.get("horsepower"), maxHorsepower);
+            }
+            return criteriaBuilder.conjunction();
+        };
+    }
+
+    private static Specification<ListingVehicle> byMileageRange(Integer minMileage, Integer maxMileage) {
+        return (root, query, criteriaBuilder) -> {
+
+            if (minMileage != null && maxMileage != null) {
+                return criteriaBuilder.between(root.get("mileage"), minMileage, maxMileage);
+            }
+            if (minMileage != null) {
+                return criteriaBuilder.greaterThanOrEqualTo(root.get("mileage"), minMileage);
+            }
+            if (maxMileage != null) {
+                return criteriaBuilder.lessThanOrEqualTo(root.get("mileage"), maxMileage);
+            }
+            return criteriaBuilder.conjunction();
+        };
+    }
+
+    private static Specification<ListingVehicle> byEngineDisplacementRange(Integer minEngineDisplacement, Integer maxEngineDisplacement) {
+        return (root, query, criteriaBuilder) -> {
+
+            if (minEngineDisplacement != null && maxEngineDisplacement != null) {
+                return criteriaBuilder.between(root.get("engineDisplacement"), minEngineDisplacement, maxEngineDisplacement);
+            }
+            if (minEngineDisplacement != null) {
+                return criteriaBuilder.greaterThanOrEqualTo(root.get("engineDisplacement"), minEngineDisplacement);
+            }
+            if (maxEngineDisplacement != null) {
+                return criteriaBuilder.lessThanOrEqualTo(root.get("engineDisplacement"), maxEngineDisplacement);
             }
             return criteriaBuilder.conjunction();
         };
