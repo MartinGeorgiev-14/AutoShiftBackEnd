@@ -1,6 +1,7 @@
 package com.cars.carSaleWebsite.mappers;
 
 import com.cars.carSaleWebsite.dto.Listing.CRUD.CreateCarListingDto;
+import com.cars.carSaleWebsite.dto.Listing.CRUD.PatchCarListingDto;
 import com.cars.carSaleWebsite.dto.Listing.CarPaginationResponse;
 import com.cars.carSaleWebsite.dto.Listing.ListingCarDto;
 import com.cars.carSaleWebsite.dto.Listing.ListingImageDto;
@@ -78,6 +79,29 @@ public class ListingCarMapper {
     }
 
     public ListingVehicle toEntity(CreateCarListingDto car, UserEntity user, Model model, Engine engine, Gearbox gearbox, Body body, Location location, Color color, EuroStandard euroStandard){
+        ListingVehicle newCar = new ListingVehicle();
+
+        newCar.setPrice(car.getPrice());
+        newCar.setCreatedAt(new Date());
+        newCar.setHorsepower(car.getHorsepower());
+        newCar.setMileage(car.getMileage());
+        newCar.setDescription(car.getDescription());
+        newCar.setEngineDisplacement(car.getEngineDisplacement());
+        newCar.setModel(model);
+        newCar.setEngine(engine);
+        newCar.setGearbox(gearbox);
+        newCar.setBody(body);
+        newCar.setUserEntity(user);
+        newCar.setLocation(location);
+        newCar.setColor(color);
+        newCar.setEuroStandard(euroStandard);
+        newCar.setIsActive(true);
+        newCar.setManufactureDate(car.getManufactureDate());
+
+        return newCar;
+    }
+
+    public ListingVehicle toEntityPatch(PatchCarListingDto car, UserEntity user, Model model, Engine engine, Gearbox gearbox, Body body, Location location, Color color, EuroStandard euroStandard){
         ListingVehicle newCar = new ListingVehicle();
 
         newCar.setPrice(car.getPrice());

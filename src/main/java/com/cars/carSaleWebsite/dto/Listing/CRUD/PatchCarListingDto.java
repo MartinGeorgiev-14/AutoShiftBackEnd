@@ -1,9 +1,8 @@
 package com.cars.carSaleWebsite.dto.Listing.CRUD;
 
-import com.cars.carSaleWebsite.dto.Listing.ListingImageDto;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -11,12 +10,12 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-public class CreateCarListingDto {
-//    private UUID make;
+public class PatchCarListingDto {
+    // private UUID make;
     private UUID model;
-
+    private List<MultipartFile> uploadImages;
     private BigDecimal price;
-//    private Date createdAt;
+    //    private Date createdAt;
 //    private Date editedAt;
     private Integer horsepower;
     private Integer mileage;
@@ -25,7 +24,9 @@ public class CreateCarListingDto {
     private UUID gearbox;
     private Integer engineDisplacement;
     private Integer mainImgIndex;
-//    private UUID mainImgId;
+    private UUID mainImgId;
+    private List<UUID> imgIdsToRemove;
+    //    private UUID mainImgId;
 //    private List<ListingImageDto> images;
     private UUID color;
     private UUID euroStandard;
@@ -33,9 +34,8 @@ public class CreateCarListingDto {
     private Date manufactureDate;
 //    private Boolean isActive;
 
-//    private String type;
+    //    private String type;
     private UUID body;
     private UUID location;
 //    private String region;
-
 }

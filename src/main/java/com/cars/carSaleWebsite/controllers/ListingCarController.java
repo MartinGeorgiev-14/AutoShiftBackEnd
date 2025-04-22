@@ -1,6 +1,7 @@
 package com.cars.carSaleWebsite.controllers;
 
 import com.cars.carSaleWebsite.dto.Listing.CRUD.FormOptionsDto;
+import com.cars.carSaleWebsite.dto.Listing.CRUD.PatchCarListingDto;
 import com.cars.carSaleWebsite.dto.Listing.CarPaginationResponse;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.CreateCarListingDto;
 import com.cars.carSaleWebsite.dto.Listing.FilterDto;
@@ -125,8 +126,9 @@ public class ListingCarController {
     }
 
     @PreAuthorize("hasRole('ADMIN') or @listingCarService.canAccessListing(#listingId)")
-    @PatchMapping(path = "app/update/{listingId}")
-    public ResponseEntity<Map<String, Object>> updateCar(@RequestBody CreateCarListingDto car, @PathVariable UUID listingId) throws IOException {
+    @PatchMapping(path = "app/update/{listingId}", consumes = {"multipart/form-data"})
+    public ResponseEntity<Map<String, Object>> updateCar(@ModelAttribute PatchCarListingDto car,
+                                                         @PathVariable UUID listingId) throws IOException {
 
         Map<String, Object> body = listingVehicleService.updateCar(car, listingId);
         Integer status = (Integer) body.get("status");
