@@ -34,7 +34,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,10 +46,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.swing.text.StyledEditorKit;
-import java.awt.*;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.List;
@@ -260,7 +256,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
                 return mapped;
             }).collect(Collectors.toList());
 
-            CarPaginationResponse response = listingCarMapper.toPegination(listings, content);
+            CarPaginationResponse response = listingCarMapper.toPagination(listings, content);
 
             Map<String, Object> body = bodyCreator.create();
             Message message = messageCreator.create(false, "Listings Found", "The listing you've searched have been found", "success");

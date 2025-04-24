@@ -1,23 +1,19 @@
 package com.cars.carSaleWebsite.mappers;
 
+import com.cars.carSaleWebsite.dto.Listing.*;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.CreateCarListingDto;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.PatchCarListingDto;
-import com.cars.carSaleWebsite.dto.Listing.CarPaginationResponse;
-import com.cars.carSaleWebsite.dto.Listing.ListingCarDto;
-import com.cars.carSaleWebsite.dto.Listing.ListingImageDto;
 import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
-import com.cars.carSaleWebsite.models.entities.listing.ListingImage;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
+import com.cars.carSaleWebsite.models.entities.userFavorites.FavoriteFilter;
 import com.cars.carSaleWebsite.models.entities.vehicle.*;
 import com.cars.carSaleWebsite.repository.UserEntityRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Component
 public class ListingCarMapper {
@@ -124,7 +120,7 @@ public class ListingCarMapper {
         return newCar;
     }
 
-    public CarPaginationResponse toPegination(Page<ListingVehicle> listings, List<ListingCarDto> content){
+    public CarPaginationResponse toPagination(Page<ListingVehicle> listings, List<ListingCarDto> content){
         CarPaginationResponse mapped = new CarPaginationResponse();
 
         mapped.setContent(content);
@@ -137,4 +133,45 @@ public class ListingCarMapper {
 
         return mapped;
     }
+
+    public FilterPaginationResponse toFilterPagination(Page<FavoriteFilter> listings, List<FavoriteFilterDto> content){
+        FilterPaginationResponse mapped = new FilterPaginationResponse();
+
+        mapped.setContent(content);
+        mapped.setPageNo(listings.getNumber());
+        mapped.setPageSize(listings.getSize());
+        mapped.setTotalPages(listings.getTotalPages());
+        mapped.setTotalElements(listings.getTotalElements());
+        mapped.setFirst(listings.isFirst());
+        mapped.setLast(listings.isLast());
+
+        return mapped;
+    }
+
+    public FavoriteFilterDto toFavoriteFilterDto(FavoriteFilter filter){
+        FavoriteFilterDto mapped = new FavoriteFilterDto();
+
+        mapped.setUserEntity(filter.getUserEntity());
+        mapped.setPriceStart(filter.getPriceStart());
+        mapped.setPriceEnd(filter.getPriceEnd());
+        mapped.setManufactureDateStart(filter.getManufactureDateStart());
+        mapped.setManufactureDateEnd(filter.getManufactureDateEnd());
+        mapped.setHorsepowerStart(filter.getHorsepowerStart());
+        mapped.setHorsepowerEnd(filter.getHorsepowerEnd());
+        mapped.setMileageStart(filter.getMileageStart());
+        mapped.setMileageEnd(filter.getMileageEnd());
+        mapped.setEngineDisplacementStart(filter.getEngineDisplacementStart());
+        mapped.setEngineDisplacementEnd(filter.getEngineDisplacementEnd());
+        mapped.setModel(filter.getModel());
+        mapped.setEngine(filter.getEngine());
+        mapped.setGearbox(filter.getGearbox());
+        mapped.setBody(filter.getBody());
+        mapped.setColor(filter.getColor());
+        mapped.setEuroStandard(filter.getEuroStandard());
+        mapped.setLocation(filter.getLocation());
+
+        return mapped;
+    }
+
+
 }

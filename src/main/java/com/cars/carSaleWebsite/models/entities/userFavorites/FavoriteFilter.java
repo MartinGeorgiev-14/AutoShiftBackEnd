@@ -33,23 +33,23 @@ public class FavoriteFilter extends BaseAbstract {
     private Model model;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "engine_id", nullable = false)
+    @JoinColumn(name = "engine_id")
     private Engine engine;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "gearbox_id", nullable = false)
+    @JoinColumn(name = "gearbox_id")
     private Gearbox gearbox;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "body_id", nullable = false)
+    @JoinColumn(name = "body_id", nullable = true)
     private Body body;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "color_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "color_id", referencedColumnName = "id")
     private Color color;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "euro_standard_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "euro_standard_id", referencedColumnName = "id")
     private EuroStandard euroStandard;
 
     @ManyToOne(fetch = FetchType.LAZY)
