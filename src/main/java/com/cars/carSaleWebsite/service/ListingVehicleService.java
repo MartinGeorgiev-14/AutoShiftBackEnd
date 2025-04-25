@@ -1,12 +1,9 @@
 package com.cars.carSaleWebsite.service;
 
-import com.cars.carSaleWebsite.dto.Listing.CRUD.FormOptionsDto;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.PatchCarListingDto;
-import com.cars.carSaleWebsite.dto.Listing.CarPaginationResponse;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.CreateCarListingDto;
-import com.cars.carSaleWebsite.dto.Listing.FilterDto;
+import com.cars.carSaleWebsite.dto.UserFavorites.FilterDto;
 import com.cars.carSaleWebsite.dto.Listing.ListingCarDto;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;

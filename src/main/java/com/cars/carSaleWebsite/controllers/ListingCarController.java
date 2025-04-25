@@ -1,12 +1,9 @@
 package com.cars.carSaleWebsite.controllers;
 
-import com.cars.carSaleWebsite.dto.Listing.CRUD.FormOptionsDto;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.PatchCarListingDto;
-import com.cars.carSaleWebsite.dto.Listing.CarPaginationResponse;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.CreateCarListingDto;
-import com.cars.carSaleWebsite.dto.Listing.FilterDto;
+import com.cars.carSaleWebsite.dto.UserFavorites.FilterDto;
 import com.cars.carSaleWebsite.dto.Listing.ListingCarDto;
-import com.cars.carSaleWebsite.models.nonEntity.Message;
 import com.cars.carSaleWebsite.service.ListingVehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

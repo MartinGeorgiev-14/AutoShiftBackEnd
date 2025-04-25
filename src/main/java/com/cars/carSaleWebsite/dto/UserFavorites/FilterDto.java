@@ -1,4 +1,4 @@
-package com.cars.carSaleWebsite.dto.Listing;
+package com.cars.carSaleWebsite.dto.UserFavorites;
 
 import lombok.Data;
 
@@ -9,6 +9,7 @@ import java.util.UUID;
 @Data
 public class FilterDto {
     private UUID make;
+    private String name;
     private UUID model;
     private UUID userId;
     private UUID region;
@@ -19,8 +20,8 @@ public class FilterDto {
     private UUID body;
     private UUID color;
     private UUID euroStandard;
-    private Date dateStart;
-    private Date dateEnd;
+    private Date manufactureDateStart;
+    private Date manufactureDateEnd;
     private BigDecimal priceStart;
     private BigDecimal priceEnd;
     private Integer horsepowerStart;

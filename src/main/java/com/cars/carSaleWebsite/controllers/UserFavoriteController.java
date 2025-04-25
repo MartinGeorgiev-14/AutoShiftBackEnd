@@ -1,5 +1,6 @@
 package com.cars.carSaleWebsite.controllers;
 
+import com.cars.carSaleWebsite.dto.UserFavorites.FilterDto;
 import com.cars.carSaleWebsite.service.UserFavoriteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -80,4 +81,59 @@ public class UserFavoriteController {
 
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
+
+    @PostMapping("filters/add")
+    public ResponseEntity<Map<String, Object>> addFavoriteFilterToUser(@RequestBody FilterDto filter){
+
+        Map<String, Object> body = userFavoriteService.addFavoriteFilterToUser(filter);
+        Integer status = (Integer) body.get("status");
+
+        if(status != 200)
+        {
+            return new ResponseEntity<>(body, HttpStatus.valueOf(status));
+        }
+
+        return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+
+    @DeleteMapping("filters/remove/{id}")
+    public ResponseEntity<Map<String, Object>> removeFavoriteFilterFromUser(@PathVariable UUID id){
+        Map<String, Object> body = userFavoriteService.removeFavoriteFilterFromUser(id);
+        Integer status = (Integer) body.get("status");
+
+        if(status != 200)
+        {
+            return new ResponseEntity<>(body, HttpStatus.valueOf(status));
+        }
+
+        return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+
+    @PatchMapping("filters/change/name/{id}")
+    public ResponseEntity<Map<String, Object>> changeFavoriteFilterName(@RequestBody Map<String, Object> request, @PathVariable UUID id){
+        String name = (String) request.get("name");
+        Map<String, Object> body = userFavoriteService.changeFavoriteFilterName(id, name);
+        Integer status = (Integer) body.get("status");
+
+        if(status != 200)
+        {
+            return new ResponseEntity<>(body, HttpStatus.valueOf(status));
+        }
+
+        return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+
+    @PatchMapping("filters/change/notify/{id}")
+    public ResponseEntity<Map<String, Object>> changeFavoriteFilterNotify(@PathVariable UUID id){
+        Map<String, Object> body = userFavoriteService.changeFavoriteFilterName(id);
+        Integer status = (Integer) body.get("status");
+
+        if(status != 200)
+        {
+            return new ResponseEntity<>(body, HttpStatus.valueOf(status));
+        }
+
+        return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+
 }

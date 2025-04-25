@@ -18,6 +18,9 @@ public class FavoriteFilter extends BaseAbstract {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity userEntity;
 
+    @Column(length = 1000)
+    private String name;
+    private Boolean isNotify;
     private BigDecimal priceStart;
     private BigDecimal priceEnd;
     private Date manufactureDateStart;

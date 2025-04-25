@@ -15,4 +15,5 @@ public interface FavoriteFilterRepository extends JpaRepository<FavoriteFilter, 
 //    @Query("SELECT f.listingVehicle FROM FavoriteListing f WHERE f.userEntity = :user")
 //    @Param("user")
     Page<FavoriteFilter> findFavoriteFiltersByUserEntity(UserEntity user, Pageable pageable);
+
 }

@@ -5,6 +5,7 @@ import com.cars.carSaleWebsite.dto.Listing.CRUD.CreateCarListingDto;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.FormOptionsDto;
 import com.cars.carSaleWebsite.dto.Listing.*;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.PatchCarListingDto;
+import com.cars.carSaleWebsite.dto.UserFavorites.FilterDto;
 import com.cars.carSaleWebsite.exceptions.NotFoundException;
 import com.cars.carSaleWebsite.helpers.BodyCreator;
 import com.cars.carSaleWebsite.helpers.ListingSpecification;

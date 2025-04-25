@@ -6,7 +6,6 @@ import com.cars.carSaleWebsite.dto.Listing.CRUD.PatchCarListingDto;
 import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
-import com.cars.carSaleWebsite.models.entities.userFavorites.FavoriteFilter;
 import com.cars.carSaleWebsite.models.entities.vehicle.*;
 import com.cars.carSaleWebsite.repository.UserEntityRepository;
 import org.springframework.data.domain.Page;
@@ -130,45 +129,6 @@ public class ListingCarMapper {
         mapped.setTotalElements(listings.getTotalElements());
         mapped.setFirst(listings.isFirst());
         mapped.setLast(listings.isLast());
-
-        return mapped;
-    }
-
-    public FilterPaginationResponse toFilterPagination(Page<FavoriteFilter> listings, List<FavoriteFilterDto> content){
-        FilterPaginationResponse mapped = new FilterPaginationResponse();
-
-        mapped.setContent(content);
-        mapped.setPageNo(listings.getNumber());
-        mapped.setPageSize(listings.getSize());
-        mapped.setTotalPages(listings.getTotalPages());
-        mapped.setTotalElements(listings.getTotalElements());
-        mapped.setFirst(listings.isFirst());
-        mapped.setLast(listings.isLast());
-
-        return mapped;
-    }
-
-    public FavoriteFilterDto toFavoriteFilterDto(FavoriteFilter filter){
-        FavoriteFilterDto mapped = new FavoriteFilterDto();
-
-        mapped.setUserEntity(filter.getUserEntity());
-        mapped.setPriceStart(filter.getPriceStart());
-        mapped.setPriceEnd(filter.getPriceEnd());
-        mapped.setManufactureDateStart(filter.getManufactureDateStart());
-        mapped.setManufactureDateEnd(filter.getManufactureDateEnd());
-        mapped.setHorsepowerStart(filter.getHorsepowerStart());
-        mapped.setHorsepowerEnd(filter.getHorsepowerEnd());
-        mapped.setMileageStart(filter.getMileageStart());
-        mapped.setMileageEnd(filter.getMileageEnd());
-        mapped.setEngineDisplacementStart(filter.getEngineDisplacementStart());
-        mapped.setEngineDisplacementEnd(filter.getEngineDisplacementEnd());
-        mapped.setModel(filter.getModel());
-        mapped.setEngine(filter.getEngine());
-        mapped.setGearbox(filter.getGearbox());
-        mapped.setBody(filter.getBody());
-        mapped.setColor(filter.getColor());
-        mapped.setEuroStandard(filter.getEuroStandard());
-        mapped.setLocation(filter.getLocation());
 
         return mapped;
     }

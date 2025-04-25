@@ -2,9 +2,13 @@ package com.cars.carSaleWebsite.service.impl;
 
 import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
 import com.cars.carSaleWebsite.dto.Listing.*;
+import com.cars.carSaleWebsite.dto.UserFavorites.FavoriteFilterResponseDto;
+import com.cars.carSaleWebsite.dto.UserFavorites.FilterDto;
+import com.cars.carSaleWebsite.dto.UserFavorites.FilterPaginationResponse;
 import com.cars.carSaleWebsite.helpers.BodyCreator;
 import com.cars.carSaleWebsite.helpers.MessageCreator;
 import com.cars.carSaleWebsite.helpers.UserIdentificator;
+import com.cars.carSaleWebsite.mappers.FilterMapper;
 import com.cars.carSaleWebsite.mappers.ListingCarMapper;
 import com.cars.carSaleWebsite.mappers.UserEntityMapper;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
@@ -16,19 +20,14 @@ import com.cars.carSaleWebsite.repository.*;
 import com.cars.carSaleWebsite.service.ListingImageService;
 import com.cars.carSaleWebsite.service.UserFavoriteService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("userFavoriteService")
@@ -44,6 +43,7 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
     private final ListingImageService listingImageService;
     private final UserEntityMapper userEntityMapper;
     private ListingCarMapper listingCarMapper;
+    private FilterMapper filterMapper;
     private MessageCreator messageCreator;
 
     @Autowired
@@ -52,7 +52,8 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
                                    BodyCreator bodyCreator, UserEntityRepository userEntityRepository,
                                    ListingImageRepository listingImageRepository, ListingVehicleRepository listingVehicleRepository,
                                    ListingImageService listingImageService, UserEntityMapper userEntityMapper,
-                                   ListingCarMapper listingCarMapper, MessageCreator messageCreator) {
+                                   ListingCarMapper listingCarMapper, MessageCreator messageCreator,
+                                   FilterMapper filterMapper) {
 
         this.favoriteFilterRepository = favoriteFilterRepository;
         this.favoriteListingRepository = favoriteListingRepository;
@@ -66,6 +67,7 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
         this.userEntityRepository = userEntityRepository;
         this.listingVehicleRepository = listingVehicleRepository;
         this.listingImageRepository = listingImageRepository;
+        this.filterMapper = filterMapper;
     }
 
     public Map<String, Object> getAllFavoriteListings(int pageNo, int pageSize, String sortBy, String sortDirection) {
@@ -179,11 +181,11 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
             Pageable pageRequest = PageRequest.of(pageNo, pageSize, sort);
             Page<FavoriteFilter> listings = favoriteFilterRepository.findFavoriteFiltersByUserEntity(user, pageRequest);
 
-            List<FavoriteFilterDto> content = listings.stream().map(f -> {
-                return listingCarMapper.toFavoriteFilterDto(f);
+            List<FavoriteFilterResponseDto> content = listings.stream().map(f -> {
+                return filterMapper.toFavoriteFilterDto(f);
             }).collect(Collectors.toList());
 
-            FilterPaginationResponse response = listingCarMapper.toFilterPagination(listings, content);
+            FilterPaginationResponse response = filterMapper.toFilterPagination(listings, content);
 
             Map<String, Object> body = bodyCreator.create();
             Message message = messageCreator.create(false, "Favorite Filters Found", "The favorite filters have been found", "success");
@@ -197,6 +199,152 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
             return messageCreator.createErrorResponse(ex.getReason(), ex.getStatusCode());
         } catch (Exception ex) {
             return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Transactional
+    public Map<String, Object> addFavoriteFilterToUser(FilterDto filter){
+        try {
+            hasValueProps(filter);
+
+            String userId = userIdentificator.getCurrentUserId();
+            UserEntity user = userEntityRepository.getReferenceById(UUID.fromString(userId));
+
+            FavoriteFilter result = filterMapper.toEntity(filter, user);
+
+            Example<FavoriteFilter> example = Example.of(result);
+            boolean exists = favoriteFilterRepository.exists(example);
+
+            Map<String, Object> body = bodyCreator.create();
+            Message message;
+            HttpStatus status;
+
+            if(!exists){
+                favoriteFilterRepository.save(result);
+                message = messageCreator.create(true, "Added to Favorites", "The filter has been added to favorites successfully", "success");
+                status = HttpStatus.OK;
+            }
+            else{
+                message = messageCreator.create(true, "Error Adding to Favorites", "Cannot add filter to favorites twice", "error");
+                status = HttpStatus.CONFLICT;
+            }
+
+            body.put("message", message);
+            body.put("status", status.value());
+
+            return body;
+
+        } catch (ResponseStatusException ex) {
+            return messageCreator.createErrorResponse(ex.getReason(), ex.getStatusCode());
+        } catch (Exception ex) {
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Transactional
+    public Map<String, Object> removeFavoriteFilterFromUser(UUID id){
+        try{
+            FavoriteFilter filter = checkFilterOwner(id);
+
+            favoriteFilterRepository.delete(filter);
+
+            Map<String, Object> body = bodyCreator.create();
+            Message message = messageCreator.create(true, "Filter Removed", "The filter has been removed from favorites", "success");
+
+            body.put("message", message);
+            body.put("status", HttpStatus.OK.value());
+
+            return body;
+        } catch (ResponseStatusException ex) {
+            return messageCreator.createErrorResponse(ex.getReason(), ex.getStatusCode());
+        } catch (Exception ex) {
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Transactional
+    public Map<String, Object> changeFavoriteFilterName(UUID id, String name){
+        try{
+
+            if (name.length() > 1000){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The name is too long");
+            }
+
+            FavoriteFilter filter = checkFilterOwner(id);
+
+            filter.setName(name);
+            favoriteFilterRepository.save(filter);
+
+            Map<String, Object> body = bodyCreator.create();
+            Message message = messageCreator.create(true, "Name Changed", "The name has been changed", "success");
+
+            body.put("message", message);
+            body.put("status", HttpStatus.OK.value());
+
+            return body;
+
+        }
+        catch (ResponseStatusException ex) {
+            return messageCreator.createErrorResponse(ex.getReason(), ex.getStatusCode());
+        } catch (Exception ex) {
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
+    }
+
+    public Map<String, Object> changeFavoriteFilterName(UUID id){
+        try{
+            FavoriteFilter filter = checkFilterOwner(id);
+            filter.setIsNotify(!filter.getIsNotify());
+            favoriteFilterRepository.save(filter);
+
+            Map<String, Object> body = bodyCreator.create();
+            Message message;
+
+            if(filter.getIsNotify()){
+                message = messageCreator.create(true, "Notify changed", "You will be notified for this filter", "success");
+            }
+            else{
+                message = messageCreator.create(true, "Notify changed", "You will not be notified for this filter", "success");
+            }
+
+            body.put("message", message);
+            body.put("status", HttpStatus.OK.value());
+
+            return body;
+
+        } catch (ResponseStatusException ex) {
+            return messageCreator.createErrorResponse(ex.getReason(), ex.getStatusCode());
+        } catch (Exception ex) {
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private FavoriteFilter checkFilterOwner(UUID id){
+        String userId = userIdentificator.getCurrentUserId();
+        UserEntity user = userEntityRepository.getReferenceById(UUID.fromString(userId));
+
+        FavoriteFilter filter = favoriteFilterRepository.getReferenceById(id);
+
+        if(!filter.getUserEntity().equals(user)){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not the owner of this filter save");
+        }
+
+        return filter;
+    }
+
+    private void hasValueProps (Object obj) throws IllegalAccessException {
+        Boolean areNulls = true;
+
+        for (Field field : obj.getClass().getDeclaredFields()){
+            field.setAccessible(true);
+            if(field.get(obj) != null){
+                areNulls = false;
+            }
+        }
+
+        if(areNulls){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one field must be filled");
         }
     }
 }

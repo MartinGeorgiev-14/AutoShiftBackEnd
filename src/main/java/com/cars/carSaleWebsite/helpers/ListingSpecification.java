@@ -1,9 +1,7 @@
 package com.cars.carSaleWebsite.helpers;
 
-import com.cars.carSaleWebsite.dto.Listing.FilterDto;
+import com.cars.carSaleWebsite.dto.UserFavorites.FilterDto;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
-import com.cars.carSaleWebsite.models.entities.vehicle.Color;
-import org.springframework.boot.autoconfigure.rsocket.RSocketProperties;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +26,7 @@ public class ListingSpecification {
                         .and(byPriceRange(filter.getPriceStart(), filter.getPriceEnd()))
                         .and(byColor(filter.getColor()))
                         .and(byEuroStandard(filter.getEuroStandard()))
-                        .and(byDateRange(filter.getDateStart(), filter.getDateEnd()))
+                        .and(byDateRange(filter.getManufactureDateStart(), filter.getManufactureDateEnd()))
                         .and(byHorsepowerRange(filter.getHorsepowerStart(), filter.getHorsepowerEnd()))
                         .and(byMileageRange(filter.getMileageStart(), filter.getMileageEnd()))
                         .and(byEngineDisplacementRange(filter.getEngineDisplacementStart(), filter.getEngineDisplacementEnd())));

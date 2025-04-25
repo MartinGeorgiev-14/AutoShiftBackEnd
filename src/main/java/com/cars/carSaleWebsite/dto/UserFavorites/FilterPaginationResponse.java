@@ -1,13 +1,12 @@
-package com.cars.carSaleWebsite.dto.Listing;
+package com.cars.carSaleWebsite.dto.UserFavorites;
 
-import com.cars.carSaleWebsite.models.entities.userFavorites.FavoriteFilter;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
 public class FilterPaginationResponse {
-    private List<FavoriteFilterDto> content;
+    private List<FavoriteFilterResponseDto> content;
     private int PageNo;
     private int PageSize;
     private long totalElements;
