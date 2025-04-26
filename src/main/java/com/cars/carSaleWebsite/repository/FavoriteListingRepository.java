@@ -18,5 +18,8 @@ public interface FavoriteListingRepository extends JpaRepository<FavoriteListing
     @Query("SELECT f.listingVehicle FROM FavoriteListing f WHERE f.userEntity = :user")
     Page<ListingVehicle> findFavoriteListingsByUser(@Param("user") UserEntity user, Pageable pageable);
 
+    @Query("SELECT f FROM FavoriteListing f WHERE f.userEntity = :user AND f.listingVehicle = :listing")
+    FavoriteListing findFavoriteListingByListing(@Param("user") UserEntity user, @Param("listing") ListingVehicle listing);
+
     Optional<FavoriteListing> findByUserEntityAndListingVehicle(UserEntity userEntity, ListingVehicle listingVehicle);
 }

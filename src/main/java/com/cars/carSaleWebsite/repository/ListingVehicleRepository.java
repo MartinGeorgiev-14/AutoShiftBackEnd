@@ -33,6 +33,10 @@ public interface ListingVehicleRepository extends JpaRepository<ListingVehicle, 
             "WHERE t.type = 'Car'")
     HashSet<ListingVehicle> getAllCars();
 
-   Page<ListingVehicle> findAllByUserEntity(UserEntity userEntity, Pageable pageable);
+    @Query("SELECT l FROM ListingVehicle l Where l.isActive = :active")
+    Page<ListingVehicle> findAllByUserEntity(UserEntity userEntity, Pageable pageable, @Param("active") Boolean isActive);
+
+    Page<ListingVehicle> findAllByIsActiveTrueAndUserEntity(UserEntity userEntity, Pageable pageable);
+    Page<ListingVehicle> findAllByIsActiveFalseAndUserEntity(UserEntity userEntity, Pageable pageable);
 
 }

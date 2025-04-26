@@ -63,9 +63,10 @@ public class ListingCarController {
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
             @RequestParam(value = "sortBy", defaultValue = "Price", required = false) String sortBy,
-            @RequestParam(value = "sortDirection", defaultValue = "ASC", required = false) String sortDirection) {
+            @RequestParam(value = "sortDirection", defaultValue = "ASC", required = false) String sortDirection,
+            @RequestParam(value = "isActive", defaultValue = "true", required = false) Boolean isActive) {
 
-        Map<String, Object> body = listingVehicleService.getByPage(pageNo, pageSize, sortBy, sortDirection);
+        Map<String, Object> body = listingVehicleService.getByPage(pageNo, pageSize, sortBy, sortDirection, isActive);
         Integer status = (Integer) body.get("status");
 
         if(status != 200)
@@ -108,7 +109,23 @@ public class ListingCarController {
         return new ResponseEntity<>(body, HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasRole('ADMIN') or @listingCarService.canAccessListing(#listingId)")
+    @PreAuthorize("hasRole('ADMIN') or @listingCarService.canAccessListing(#id)")
+    @PatchMapping("app/update/status/{id}")
+    public ResponseEntity<Map<String, Object>> changeStatusListing(@PathVariable("id") UUID id){
+
+        Map<String, Object> body = listingVehicleService.changeStatusListing(id);
+        Integer status = (Integer) body.get("status");
+
+        if(status != 201){
+            return  new ResponseEntity<>(body, HttpStatus.valueOf(status));
+        }
+
+        return new ResponseEntity<>(body, HttpStatus.CREATED);
+
+    }
+
+    //   @listingCarService.canAccessListing(#listingId)
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("app/delete/{listingId}")
     public ResponseEntity<Map<String, Object>> deleteCarById(@PathVariable UUID listingId){
 

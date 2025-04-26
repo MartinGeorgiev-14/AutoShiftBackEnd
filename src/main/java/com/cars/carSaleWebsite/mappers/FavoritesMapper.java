@@ -1,11 +1,15 @@
 package com.cars.carSaleWebsite.mappers;
 
-import com.cars.carSaleWebsite.dto.UserFavorites.FavoriteFilterResponseDto;
-import com.cars.carSaleWebsite.dto.UserFavorites.FilterDto;
-import com.cars.carSaleWebsite.dto.UserFavorites.FilterPaginationResponse;
+import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
+import com.cars.carSaleWebsite.dto.Listing.CarPaginationResponse;
+import com.cars.carSaleWebsite.dto.Listing.ListingCarDto;
+import com.cars.carSaleWebsite.dto.Listing.ListingImageDto;
+import com.cars.carSaleWebsite.dto.UserFavorites.*;
 import com.cars.carSaleWebsite.dto.Vehicle.*;
+import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
 import com.cars.carSaleWebsite.models.entities.userFavorites.FavoriteFilter;
+import com.cars.carSaleWebsite.models.entities.userFavorites.FavoriteListing;
 import com.cars.carSaleWebsite.models.entities.vehicle.*;
 import com.cars.carSaleWebsite.repository.*;
 import lombok.Data;
@@ -17,7 +21,7 @@ import java.util.function.Function;
 
 @Component
 @Data
-public class FilterMapper {
+public class FavoritesMapper {
 
     private ModelRepository modelRepository;
     private EngineRepository engineRepository;
@@ -27,10 +31,10 @@ public class FilterMapper {
     private EuroStandardRepository euroStandardRepository;
     private LocationRepository locationRepository;
 
-    public FilterMapper(ModelRepository modelRepository, EngineRepository engineRepository,
-                        GearboxRepository gearboxRepository, BodyRepository bodyRepository,
-                        ColorRepository colorRepository, EuroStandardRepository euroStandardRepository,
-                        LocationRepository locationRepository) {
+    public FavoritesMapper(ModelRepository modelRepository, EngineRepository engineRepository,
+                           GearboxRepository gearboxRepository, BodyRepository bodyRepository,
+                           ColorRepository colorRepository, EuroStandardRepository euroStandardRepository,
+                           LocationRepository locationRepository) {
         this.modelRepository = modelRepository;
         this.engineRepository = engineRepository;
         this.gearboxRepository = gearboxRepository;
@@ -40,8 +44,8 @@ public class FilterMapper {
         this.locationRepository = locationRepository;
     }
 
-    public FilterPaginationResponse toFilterPagination(Page<FavoriteFilter> listings, List<FavoriteFilterResponseDto> content){
-        FilterPaginationResponse mapped = new FilterPaginationResponse();
+    public FilterPaginationResponseDto toFilterPagination(Page<FavoriteFilter> listings, List<FavoriteFilterResponseDto> content){
+        FilterPaginationResponseDto mapped = new FilterPaginationResponseDto();
 
         mapped.setContent(content);
         mapped.setPageNo(listings.getNumber());
@@ -148,7 +152,51 @@ public class FilterMapper {
         mapped.setEngineDisplacementEnd(filter.getEngineDisplacementEnd());
 
         return mapped;
+    }
 
+    public FavoriteListingDto toFavoriteListingDto(ListingVehicle vehicle, UserEntityDto mappedUser,
+                                                   List<ListingImageDto> images, FavoriteListing fav){
+        FavoriteListingDto car = new FavoriteListingDto();
+
+        car.setBody(vehicle.getBody().getBody());
+        car.setId(vehicle.getId());
+        car.setDescription(vehicle.getDescription());
+        car.setEngine(vehicle.getEngine().getType());
+        car.setGearbox(vehicle.getGearbox().getType());
+        car.setMake(vehicle.getModel().getMake().getName());
+        car.setHorsepower(vehicle.getHorsepower());
+        car.setMileage(vehicle.getMileage());
+        car.setModel(vehicle.getModel().getName());
+        car.setType(vehicle.getBody().getType().getType());
+        car.setPrice(vehicle.getPrice());
+        car.setCreatedAt(vehicle.getCreatedAt());
+        car.setEditedAt(vehicle.getEditedAt());
+        car.setEngineDisplacement(vehicle.getEngineDisplacement());
+        car.setIsActive(vehicle.getIsActive());
+        car.setManufactureDate(vehicle.getManufactureDate());
+        car.setColor(vehicle.getColor().getColor());
+        car.setEuroStandard(vehicle.getEuroStandard().getStandard());
+        car.setUser(mappedUser);
+        car.setRegion(vehicle.getLocation().getRegion().getRegion());
+        car.setLocation(vehicle.getLocation().getLocation());
+        car.setIsNotify(fav.getIsNotify());
+        car.setImages(images);
+
+        return car;
+    }
+
+    public FavoriteListingPaginationResponseDto toFavoriteListingPagination(Page<ListingVehicle> listings, List<FavoriteListingDto> content){
+        FavoriteListingPaginationResponseDto mapped = new FavoriteListingPaginationResponseDto();
+
+        mapped.setContent(content);
+        mapped.setPageNo(listings.getNumber());
+        mapped.setPageSize(listings.getSize());
+        mapped.setTotalPages(listings.getTotalPages());
+        mapped.setTotalElements(listings.getTotalElements());
+        mapped.setFirst(listings.isFirst());
+        mapped.setLast(listings.isLast());
+
+        return mapped;
     }
 
     public <T, R> R safeGet(T obj, Function<T, R> getter) {

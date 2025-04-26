@@ -4,6 +4,7 @@ import com.cars.carSaleWebsite.dto.Listing.*;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.CreateCarListingDto;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.PatchCarListingDto;
 import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
+import com.cars.carSaleWebsite.dto.UserFavorites.FavoriteListingDto;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
 import com.cars.carSaleWebsite.models.entities.vehicle.*;

@@ -53,6 +53,19 @@ public class UserFavoriteController {
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
+    @PatchMapping("listing/change/notify/{id}")
+    public ResponseEntity<Map<String, Object>> changeFavoriteListingNotify(@PathVariable UUID id){
+        Map<String, Object> body = userFavoriteService.changeFavoriteFilterNotify(id);
+        Integer status = (Integer) body.get("status");
+
+        if(status != 200)
+        {
+            return new ResponseEntity<>(body, HttpStatus.valueOf(status));
+        }
+
+        return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+
     @DeleteMapping("listing/remove/{id}")
     public ResponseEntity<Map<String, Object>> removeFavoriteListingFromUser(@PathVariable UUID id){
 
@@ -125,7 +138,7 @@ public class UserFavoriteController {
 
     @PatchMapping("filters/change/notify/{id}")
     public ResponseEntity<Map<String, Object>> changeFavoriteFilterNotify(@PathVariable UUID id){
-        Map<String, Object> body = userFavoriteService.changeFavoriteFilterName(id);
+        Map<String, Object> body = userFavoriteService.changeFavoriteFilterNotify(id);
         Integer status = (Integer) body.get("status");
 
         if(status != 200)

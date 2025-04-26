@@ -10,7 +10,8 @@ import com.cars.carSaleWebsite.exceptions.NotFoundException;
 import com.cars.carSaleWebsite.helpers.BodyCreator;
 import com.cars.carSaleWebsite.helpers.ListingSpecification;
 import com.cars.carSaleWebsite.helpers.MessageCreator;
-import com.cars.carSaleWebsite.mappers.FilterMapper;
+import com.cars.carSaleWebsite.helpers.UserIdentificator;
+import com.cars.carSaleWebsite.mappers.FavoritesMapper;
 import com.cars.carSaleWebsite.mappers.ListingCarMapper;
 import com.cars.carSaleWebsite.mappers.ListingImageMapper;
 import com.cars.carSaleWebsite.mappers.UserEntityMapper;
@@ -49,6 +50,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -69,7 +71,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
    private final BodyRepository bodyRepository;
    private final LocationRepository locationRepository;
    private final ObjectMapper objectMapper;
-   private final FilterMapper filterMapper;
+   private final FavoritesMapper favoritesMapper;
    private final JWTGenerator jwtGenerator;
    private final TypeRepository typeRepository;
    private final MakeRepository makeRepository;
@@ -78,6 +80,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
    private final MessageCreator messageCreator;
    private final EuroStandardRepository euroStandardRepository;
    private final ColorRepository colorRepository;
+   private final UserIdentificator userIdentificator;
 
 
     @Autowired
@@ -87,11 +90,11 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
                                      ListingImageService listingImageService, ModelRepository modelRepository,
                                      EngineRepository engineRepository, GearboxRepository gearboxRepository,
                                      BodyRepository bodyRepository, LocationRepository locationRepository,
-                                     ObjectMapper objectMapper, FilterMapper filterMapper,
+                                     ObjectMapper objectMapper, FavoritesMapper favoritesMapper,
                                      JWTGenerator jwtGenerator, TypeRepository typeRepository,
                                      MakeRepository makeRepository, RegionRepository regionRepository,
                                      BodyCreator bodyCreator, MessageCreator messageCreator, EuroStandardRepository euroStandardRepository,
-                                     ColorRepository colorRepository) {
+                                     ColorRepository colorRepository, UserIdentificator userIdentificator) {
         this.listingVehicleRepository = listingVehicleRepository;
         this.userEntityRepository = userEntityRepository;
         this.listingCarMapper = listingCarMapper;
@@ -105,7 +108,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
         this.bodyRepository = bodyRepository;
         this.locationRepository = locationRepository;
         this.objectMapper = objectMapper;
-        this.filterMapper = filterMapper;
+        this.favoritesMapper = favoritesMapper;
         this.jwtGenerator = jwtGenerator;
         this.typeRepository = typeRepository;
         this.makeRepository = makeRepository;
@@ -114,7 +117,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
         this.messageCreator = messageCreator;
         this.euroStandardRepository = euroStandardRepository;
         this.colorRepository = colorRepository;
-
+        this.userIdentificator = userIdentificator;
     }
 
     @Override
@@ -136,10 +139,10 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
             return body;
         } catch (ResponseStatusException ex) {
-            return createErrorResponse(ex.getReason(), ex.getStatusCode());
+            return messageCreator.createErrorResponse(ex.getReason(), ex.getStatusCode());
         }
         catch (Exception ex){
-            return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -150,7 +153,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
         try{
             hasNullProps(car);
 
-            String userId = getCurrentUserId();
+            String userId = userIdentificator.getCurrentUserId();
             Cloudinary cloudinary = new Cloudinary();
 
             UserEntity user = userEntityRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User was not found"));
@@ -202,10 +205,10 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
         } catch (ResponseStatusException ex) {
             String reason = ex.getReason();
-            return createErrorResponse(ex.getReason(), ex.getStatusCode());
+            return messageCreator.createErrorResponse(ex.getReason(), ex.getStatusCode());
         }
             catch (Exception ex){
-            return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
 
@@ -230,13 +233,20 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
     }
 
     @Override
-    public Map<String, Object> getByPage(int pageNo, int pageSize, String sortBy, String sortDirection) {
+    public Map<String, Object> getByPage(int pageNo, int pageSize, String sortBy, String sortDirection, Boolean isActive) {
         try{
-            String userId = getCurrentUserId();
+            String userId = userIdentificator.getCurrentUserId();
             UserEntity user = userEntityRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User was not found"));
             Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
             Pageable pageRequest = PageRequest.of(pageNo, pageSize, sort);
-            Page<ListingVehicle> listings = listingVehicleRepository.findAllByUserEntity(user, pageRequest);
+            Page<ListingVehicle> listings;
+            if(isActive){
+                listings = listingVehicleRepository.findAllByIsActiveTrueAndUserEntity(user, pageRequest);
+            }
+            else{
+                listings = listingVehicleRepository.findAllByIsActiveFalseAndUserEntity(user, pageRequest);
+            }
+
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null) {
@@ -268,10 +278,10 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
             return body;
         } catch (ResponseStatusException ex) {
-            return createErrorResponse(ex.getReason(), ex.getStatusCode());
+            return messageCreator.createErrorResponse(ex.getReason(), ex.getStatusCode());
         }
         catch (Exception ex){
-            return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
     }
@@ -300,10 +310,10 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
             return body;
         } catch (ResponseStatusException ex) {
-            return createErrorResponse(ex.getReason(), ex.getStatusCode());
+            return messageCreator.createErrorResponse(ex.getReason(), ex.getStatusCode());
         }
         catch (Exception ex){
-            return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
     }
@@ -332,6 +342,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
             newcar.setId(nowcar.getId());
 
             patch(nowcar, newcar);
+            nowcar.setEditedAt(new Date());
 
             listingVehicleRepository.save(nowcar);
             List<ListingImage> imagesDb = listingImageRepository.getAllListingImagesByListing(newcar);
@@ -406,9 +417,9 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
             return bodyResponse;
         } catch (ResponseStatusException ex) {
-            return createErrorResponse(ex.getReason(), ex.getStatusCode());
+            return messageCreator.createErrorResponse(ex.getReason(), ex.getStatusCode());
         } catch (Exception ex) {
-            return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -452,14 +463,40 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
             return body;
         } catch (Exception ex) {
-            return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Transactional
+    public Map<String, Object> changeStatusListing(UUID id){
+        try{
+            ListingVehicle listing = listingVehicleRepository.getReferenceById(id);
+            listing.setIsActive(!listing.getIsActive());
+
+            Map<String, Object> body = bodyCreator.create();
+            Message message;
+
+            if(listing.getIsActive()){
+                message = messageCreator.create(true, "Listing Activity Changed", "Your listing is set to active", "success");
+            }
+            else{
+                message = messageCreator.create(true, "Listing Activity Changed", "Your listing is set to inactive", "success");
+            }
+
+            body.put("message", message);
+            body.put("status", HttpStatus.OK.value());
+
+            return body;
+
+        } catch (Exception ex) {
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
     }
 
     @Override
     public boolean canAccessListing(String listingId) {
-        String userId = getCurrentUserId();
+        String userId = userIdentificator.getCurrentUserId();
 
         ListingVehicle vehicle = listingVehicleRepository.findCarById(UUID.fromString(listingId)).orElse(null);
 
@@ -519,10 +556,10 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
             return body;
         } catch (ResponseStatusException ex) {
-            return createErrorResponse(ex.getReason(), ex.getStatusCode());
+            return messageCreator.createErrorResponse(ex.getReason(), ex.getStatusCode());
         }
         catch (Exception ex){
-            return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -545,38 +582,6 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
     private String getImageTypeFromFileName(String fileName) {
         int index = fileName.lastIndexOf('.');
         return (index > 0) ? fileName.substring(index + 1).toLowerCase() : "unknown";
-    }
-
-    private String getCurrentUserId(){
-        String token = (String) getJWTFromRequest();
-
-        if(token == null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You need to login");
-        }
-
-        return jwtGenerator.getUserIdFromJWT(token);
-    }
-
-    private String getJWTFromRequest() {
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attributes != null) {
-            HttpServletRequest request = attributes.getRequest();
-            String bearerToken = request.getHeader("Authorization");
-            if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-                return bearerToken.substring(7);
-            }
-        }
-        return null;
-    }
-
-    private Map<String, Object> createErrorResponse(String reason, HttpStatusCode status){
-        Map<String, Object> body = bodyCreator.create();
-
-        Message message = messageCreator.create(true, "Error", reason, "error");
-        body.put("message", message);
-        body.put("status", status.value());
-
-        return body;
     }
 
     private void hasNullProps (Object obj) throws IllegalAccessException {

@@ -18,4 +18,5 @@ public class FavoriteListing extends BaseAbstract {
     @ManyToOne(fetch = FetchType.LAZY)
     private ListingVehicle listingVehicle;
 
+    private Boolean isNotify;
 }

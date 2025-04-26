@@ -13,5 +13,5 @@ public interface UserFavoriteService {
     Map<String, Object> addFavoriteFilterToUser(FilterDto filter);
     Map<String, Object> removeFavoriteFilterFromUser(UUID id);
     Map<String, Object> changeFavoriteFilterName(UUID id, String name);
-    Map<String, Object> changeFavoriteFilterName(UUID id);
+    Map<String, Object> changeFavoriteFilterNotify(UUID id);
 }

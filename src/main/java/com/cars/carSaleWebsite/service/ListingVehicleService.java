@@ -16,10 +16,11 @@ public interface ListingVehicleService {
     Map<String, Object> getListingById(UUID id);
     Map<String, Object> createCarListing(CreateCarListingDto car, List<MultipartFile> images) throws IOException;
     HashSet<ListingCarDto> getAllCars();
-    Map<String, Object> getByPage(int pageNo, int pageSize, String sortBy, String sortDirection);
+    Map<String, Object> getByPage(int pageNo, int pageSize, String sortBy, String sortDirection, Boolean isActive);
     Map<String, Object> deleteCarById(UUID id);
     Map<String, Object> updateCar(PatchCarListingDto carDto, UUID id) throws IOException;
     Map<String, Object> searchCarByCriteria(FilterDto filterDto, int pageNo, int pageSize, String sortBy, String sortDirection);
     boolean canAccessListing(String listingId);
     Map<String, Object> getAllFormOptions();
+    Map<String, Object> changeStatusListing(UUID id);
 }

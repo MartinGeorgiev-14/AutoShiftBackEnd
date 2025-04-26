@@ -2,13 +2,11 @@ package com.cars.carSaleWebsite.service.impl;
 
 import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
 import com.cars.carSaleWebsite.dto.Listing.*;
-import com.cars.carSaleWebsite.dto.UserFavorites.FavoriteFilterResponseDto;
-import com.cars.carSaleWebsite.dto.UserFavorites.FilterDto;
-import com.cars.carSaleWebsite.dto.UserFavorites.FilterPaginationResponse;
+import com.cars.carSaleWebsite.dto.UserFavorites.*;
 import com.cars.carSaleWebsite.helpers.BodyCreator;
 import com.cars.carSaleWebsite.helpers.MessageCreator;
 import com.cars.carSaleWebsite.helpers.UserIdentificator;
-import com.cars.carSaleWebsite.mappers.FilterMapper;
+import com.cars.carSaleWebsite.mappers.FavoritesMapper;
 import com.cars.carSaleWebsite.mappers.ListingCarMapper;
 import com.cars.carSaleWebsite.mappers.UserEntityMapper;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
@@ -43,7 +41,7 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
     private final ListingImageService listingImageService;
     private final UserEntityMapper userEntityMapper;
     private ListingCarMapper listingCarMapper;
-    private FilterMapper filterMapper;
+    private FavoritesMapper favoritesMapper;
     private MessageCreator messageCreator;
 
     @Autowired
@@ -53,7 +51,7 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
                                    ListingImageRepository listingImageRepository, ListingVehicleRepository listingVehicleRepository,
                                    ListingImageService listingImageService, UserEntityMapper userEntityMapper,
                                    ListingCarMapper listingCarMapper, MessageCreator messageCreator,
-                                   FilterMapper filterMapper) {
+                                   FavoritesMapper favoritesMapper) {
 
         this.favoriteFilterRepository = favoriteFilterRepository;
         this.favoriteListingRepository = favoriteListingRepository;
@@ -67,7 +65,7 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
         this.userEntityRepository = userEntityRepository;
         this.listingVehicleRepository = listingVehicleRepository;
         this.listingImageRepository = listingImageRepository;
-        this.filterMapper = filterMapper;
+        this.favoritesMapper = favoritesMapper;
     }
 
     public Map<String, Object> getAllFavoriteListings(int pageNo, int pageSize, String sortBy, String sortDirection) {
@@ -78,15 +76,16 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
             Pageable pageRequest = PageRequest.of(pageNo, pageSize, sort);
             Page<ListingVehicle> listings = favoriteListingRepository.findFavoriteListingsByUser(user, pageRequest);
 
-            List<ListingCarDto> content = listings.stream().map(c -> {
+            List<FavoriteListingDto> content = listings.stream().map(c -> {
                 List<ListingImageDto> mappedImages = listingImageService.getAllImagesOfListingById(c);
                 UserEntityDto mappeedUser = userEntityMapper.toDTO(user);
-                ListingCarDto mapped = listingCarMapper.toDTO(c, mappeedUser, mappedImages);
+                FavoriteListing fav = favoriteListingRepository.findFavoriteListingByListing(user, c);
+                FavoriteListingDto mapped = favoritesMapper.toFavoriteListingDto(c, mappeedUser, mappedImages, fav);
 
                 return mapped;
             }).collect(Collectors.toList());
 
-            CarPaginationResponse response = listingCarMapper.toPagination(listings, content);
+            FavoriteListingPaginationResponseDto response = favoritesMapper.toFavoriteListingPagination(listings, content);
 
             Map<String, Object> body = bodyCreator.create();
             Message message = messageCreator.create(false, "Favorite Listings Found", "The favorite listings you've searched have been found", "success");
@@ -118,6 +117,7 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
                 FavoriteListing newFavorite = new FavoriteListing();
                 newFavorite.setUserEntity(user);
                 newFavorite.setListingVehicle(listing);
+                newFavorite.setIsNotify(true);
                 favoriteListingRepository.save(newFavorite);
                 message = messageCreator.reassignProps(message,true, "Added to Favorites", "The listing has been successfully added to your favorites", "success");
                 status = HttpStatus.OK;
@@ -173,6 +173,40 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
         }
     }
 
+    public Map<String, Object> changeFavoriteListingNotify(UUID id){
+        try{
+            String userId = userIdentificator.getCurrentUserId();
+            UserEntity user = userEntityRepository.getReferenceById(UUID.fromString(userId));
+
+            FavoriteListing listing = favoriteListingRepository.getReferenceById(id);
+            listing.setIsNotify(!listing.getIsNotify());
+            favoriteListingRepository.save(listing);
+
+            if(!listing.getUserEntity().equals(user)){
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not the owner of this filter save");
+            }
+
+            Map<String, Object> body = bodyCreator.create();
+            Message message;
+
+            if(listing.getIsNotify()){
+                message = messageCreator.create(true, "Notify changed", "You will be notified for this filter", "success");
+            }
+            else{
+                message = messageCreator.create(true, "Notify changed", "You will not be notified for this filter", "success");
+            }
+
+            body.put("message", message);
+            body.put("status", HttpStatus.OK.value());
+
+            return body;
+        } catch (ResponseStatusException ex) {
+            return messageCreator.createErrorResponse(ex.getReason(), ex.getStatusCode());
+        } catch (Exception ex) {
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
     public Map<String, Object> getAllFavoriteFilters(int pageNo, int pageSize) {
         try {
             String userId = userIdentificator.getCurrentUserId();
@@ -182,10 +216,10 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
             Page<FavoriteFilter> listings = favoriteFilterRepository.findFavoriteFiltersByUserEntity(user, pageRequest);
 
             List<FavoriteFilterResponseDto> content = listings.stream().map(f -> {
-                return filterMapper.toFavoriteFilterDto(f);
+                return favoritesMapper.toFavoriteFilterDto(f);
             }).collect(Collectors.toList());
 
-            FilterPaginationResponse response = filterMapper.toFilterPagination(listings, content);
+            FilterPaginationResponseDto response = favoritesMapper.toFilterPagination(listings, content);
 
             Map<String, Object> body = bodyCreator.create();
             Message message = messageCreator.create(false, "Favorite Filters Found", "The favorite filters have been found", "success");
@@ -210,7 +244,7 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
             String userId = userIdentificator.getCurrentUserId();
             UserEntity user = userEntityRepository.getReferenceById(UUID.fromString(userId));
 
-            FavoriteFilter result = filterMapper.toEntity(filter, user);
+            FavoriteFilter result = favoritesMapper.toEntity(filter, user);
 
             Example<FavoriteFilter> example = Example.of(result);
             boolean exists = favoriteFilterRepository.exists(example);
@@ -292,7 +326,8 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
 
     }
 
-    public Map<String, Object> changeFavoriteFilterName(UUID id){
+    @Transactional
+    public Map<String, Object> changeFavoriteFilterNotify(UUID id){
         try{
             FavoriteFilter filter = checkFilterOwner(id);
             filter.setIsNotify(!filter.getIsNotify());
