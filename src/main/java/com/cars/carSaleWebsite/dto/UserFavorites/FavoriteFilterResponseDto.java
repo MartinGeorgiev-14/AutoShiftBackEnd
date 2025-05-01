@@ -5,6 +5,7 @@ import com.cars.carSaleWebsite.dto.Vehicle.EngineDto;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -14,8 +15,8 @@ public class FavoriteFilterResponseDto {
     private Boolean isNotify;
     private BigDecimal priceStart;
     private BigDecimal priceEnd;
-    private Date manufactureDateStart;
-    private Date manufactureDateEnd;
+    private LocalDate manufactureDateStart;
+    private LocalDate manufactureDateEnd;
     private Integer horsepowerStart;
     private Integer horsepowerEnd;
     private Integer mileageStart;

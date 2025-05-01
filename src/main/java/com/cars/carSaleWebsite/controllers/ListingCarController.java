@@ -2,10 +2,11 @@ package com.cars.carSaleWebsite.controllers;
 
 import com.cars.carSaleWebsite.dto.Listing.CRUD.PatchCarListingDto;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.CreateCarListingDto;
-import com.cars.carSaleWebsite.dto.UserFavorites.FilterDto;
+import com.cars.carSaleWebsite.dto.Listing.CRUD.FilterDto;
 import com.cars.carSaleWebsite.dto.Listing.ListingCarDto;
 import com.cars.carSaleWebsite.service.ListingVehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 @RestController
@@ -93,6 +96,68 @@ public class ListingCarController {
         }
 
         return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+
+    @GetMapping("app/search/fromEmail")
+    public ResponseEntity<Map<String, Object>> getListingsFromEmail(
+            @RequestParam(value = "pageNo", defaultValue = "0") int page,
+            @RequestParam(value = "pageSize", defaultValue = "10") int size,
+            @RequestParam(value = "sortBy", defaultValue = "Price", required = false) String sortBy,
+            @RequestParam(value = "sortDirection", defaultValue = "ASC", required = false) String sortDirection,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdStart,
+            @RequestParam(required = false) UUID make,
+            @RequestParam(required = false) UUID model,
+            @RequestParam(required = false) UUID region,
+            @RequestParam(required = false) UUID location,
+            @RequestParam(required = false) UUID engine,
+            @RequestParam(required = false) UUID gearbox,
+            @RequestParam(required = false) UUID type,
+            @RequestParam(required = false) UUID body,
+            @RequestParam(required = false) UUID color,
+            @RequestParam(required = false) UUID euroStandard,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate manufactureDateStart,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate manufactureDateEnd,
+            @RequestParam(required = false) BigDecimal priceStart,
+            @RequestParam(required = false) BigDecimal priceEnd,
+            @RequestParam(required = false) Integer horsepowerStart,
+            @RequestParam(required = false) Integer horsepowerEnd,
+            @RequestParam(required = false) Integer mileageStart,
+            @RequestParam(required = false) Integer mileageEnd,
+            @RequestParam(required = false) Integer engineDisplacementStart,
+            @RequestParam(required = false) Integer engineDisplacementEnd
+            ) {
+
+        FilterDto filterDto = new FilterDto();
+        filterDto.setCreatedStart(createdStart);
+        filterDto.setMake(make);
+        filterDto.setModel(model);
+        filterDto.setRegion(region);
+        filterDto.setLocation(location);
+        filterDto.setEngine(engine);
+        filterDto.setGearbox(gearbox);
+        filterDto.setType(type);
+        filterDto.setBody(body);
+        filterDto.setColor(color);
+        filterDto.setEuroStandard(euroStandard);
+        filterDto.setManufactureDateStart(manufactureDateStart);
+        filterDto.setManufactureDateEnd(manufactureDateEnd);
+        filterDto.setPriceStart(priceStart);
+        filterDto.setPriceEnd(priceEnd);
+        filterDto.setHorsepowerStart(horsepowerStart);
+        filterDto.setHorsepowerEnd(horsepowerEnd);
+        filterDto.setMileageStart(mileageStart);
+        filterDto.setMileageEnd(mileageEnd);
+        filterDto.setEngineDisplacementStart(engineDisplacementStart);
+        filterDto.setEngineDisplacementEnd(engineDisplacementEnd);
+
+        Map<String, Object> response = listingVehicleService.searchCarByCriteria(filterDto, page, size, sortBy, sortDirection);
+        Integer status = (Integer) response.get("status");
+
+        if(status != 200){
+            return  new ResponseEntity<>(response, HttpStatus.valueOf(status));
+        }
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping(path = "app/create", consumes = {"multipart/form-data"})

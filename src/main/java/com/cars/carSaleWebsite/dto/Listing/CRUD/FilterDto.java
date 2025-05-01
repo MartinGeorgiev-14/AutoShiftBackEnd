@@ -1,9 +1,9 @@
-package com.cars.carSaleWebsite.dto.UserFavorites;
+package com.cars.carSaleWebsite.dto.Listing.CRUD;
 
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -20,8 +20,8 @@ public class FilterDto {
     private UUID body;
     private UUID color;
     private UUID euroStandard;
-    private Date manufactureDateStart;
-    private Date manufactureDateEnd;
+    private LocalDate manufactureDateStart;
+    private LocalDate manufactureDateEnd;
     private BigDecimal priceStart;
     private BigDecimal priceEnd;
     private Integer horsepowerStart;
@@ -30,4 +30,6 @@ public class FilterDto {
     private Integer mileageEnd;
     private Integer engineDisplacementStart;
     private Integer engineDisplacementEnd;
+    private LocalDate createdStart;
+    private LocalDate createdEnd;
 }

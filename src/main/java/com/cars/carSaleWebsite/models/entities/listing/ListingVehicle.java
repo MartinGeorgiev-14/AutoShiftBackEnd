@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -21,9 +22,9 @@ public class ListingVehicle {
     private Boolean isActive;
     @Column(name = "price")
     private BigDecimal price;
-    private Date manufactureDate;
-    private Date createdAt;
-    private Date editedAt;
+    private LocalDate manufactureDate;
+    private LocalDate createdAt;
+    private LocalDate editedAt;
     private Integer horsepower;
     private Integer mileage;
 

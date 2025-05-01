@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -23,14 +24,19 @@ public class FavoriteFilter extends BaseAbstract {
     private Boolean isNotify;
     private BigDecimal priceStart;
     private BigDecimal priceEnd;
-    private Date manufactureDateStart;
-    private Date manufactureDateEnd;
+    private LocalDate manufactureDateStart;
+    private LocalDate manufactureDateEnd;
     private Integer horsepowerStart;
     private Integer horsepowerEnd;
     private Integer mileageStart;
     private Integer mileageEnd;
     private Integer engineDisplacementStart;
     private Integer engineDisplacementEnd;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "make_id")
+    private Make make;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "model_id")
     private Model model;
@@ -44,7 +50,11 @@ public class FavoriteFilter extends BaseAbstract {
     private Gearbox gearbox;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "body_id", nullable = true)
+    @JoinColumn(name = "type_id")
+    private Type type;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "body_id")
     private Body body;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -54,6 +64,10 @@ public class FavoriteFilter extends BaseAbstract {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "euro_standard_id", referencedColumnName = "id")
     private EuroStandard euroStandard;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "region_id")
+    private Region region;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")

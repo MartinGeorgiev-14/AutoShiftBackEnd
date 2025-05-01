@@ -5,6 +5,7 @@ import com.cars.carSaleWebsite.dto.Listing.ListingImageDto;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -18,8 +19,8 @@ public class FavoriteListingDto {
     private String model;
 
     private BigDecimal price;
-    private Date createdAt;
-    private Date editedAt;
+    private LocalDate createdAt;
+    private LocalDate editedAt;
     private Integer horsepower;
     private Integer mileage;
     private String description;
@@ -32,7 +33,7 @@ public class FavoriteListingDto {
     private String color;
     private String euroStandard;
     private Boolean isActive;
-    private Date manufactureDate;
+    private LocalDate manufactureDate;
     private String type;
     private String body;
     private String location;

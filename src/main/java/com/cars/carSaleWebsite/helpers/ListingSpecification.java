@@ -1,12 +1,12 @@
 package com.cars.carSaleWebsite.helpers;
 
-import com.cars.carSaleWebsite.dto.UserFavorites.FilterDto;
+import com.cars.carSaleWebsite.dto.Listing.CRUD.FilterDto;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Component
@@ -29,7 +29,8 @@ public class ListingSpecification {
                         .and(byDateRange(filter.getManufactureDateStart(), filter.getManufactureDateEnd()))
                         .and(byHorsepowerRange(filter.getHorsepowerStart(), filter.getHorsepowerEnd()))
                         .and(byMileageRange(filter.getMileageStart(), filter.getMileageEnd()))
-                        .and(byEngineDisplacementRange(filter.getEngineDisplacementStart(), filter.getEngineDisplacementEnd())));
+                        .and(byEngineDisplacementRange(filter.getEngineDisplacementStart(), filter.getEngineDisplacementEnd()))
+                        .and(byDateCreated(filter.getCreatedStart(), filter.getCreatedEnd())));
     }
 
     public static Specification<ListingVehicle> filterForUser(UUID id){
@@ -100,7 +101,7 @@ public class ListingSpecification {
         };
     }
 
-    private static Specification<ListingVehicle> byDateRange(Date minDate, Date maxDate) {
+    private static Specification<ListingVehicle> byDateRange(LocalDate minDate, LocalDate maxDate) {
         return (root, query, criteriaBuilder) -> {
 
             if (minDate != null && maxDate != null) {
@@ -164,6 +165,23 @@ public class ListingSpecification {
         };
     }
 
+    private static Specification<ListingVehicle> byDateCreated(LocalDate minDate, LocalDate maxDate) {
+        return (root, query, criteriaBuilder) -> {
+
+            if (minDate != null && maxDate != null) {
+                return criteriaBuilder.between(root.get("createdAt"), minDate, maxDate);
+            }
+            if (minDate != null) {
+                return criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), minDate);
+            }
+            if (maxDate != null) {
+                return criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), maxDate);
+            }
+            return criteriaBuilder.conjunction();
+        };
+    }
+
+
     private static Specification<ListingVehicle> byColor(UUID color){
         return (root, query, criteriaBuilder) ->
                 color != null ? criteriaBuilder.equal(root.get("color").get("id"), color) : criteriaBuilder.conjunction();
@@ -171,7 +189,7 @@ public class ListingSpecification {
 
     private static Specification<ListingVehicle> byEuroStandard(UUID standard){
         return (root, query, criteriaBuilder) ->
-                standard != null ? criteriaBuilder.equal(root.get("standard").get("id"), standard) : criteriaBuilder.conjunction();
+                standard != null ? criteriaBuilder.equal(root.get("euroStandard").get("id"), standard) : criteriaBuilder.conjunction();
     }
 
 }

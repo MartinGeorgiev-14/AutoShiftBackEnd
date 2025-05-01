@@ -1,8 +1,7 @@
 package com.cars.carSaleWebsite.mappers;
 
 import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
-import com.cars.carSaleWebsite.dto.Listing.CarPaginationResponse;
-import com.cars.carSaleWebsite.dto.Listing.ListingCarDto;
+import com.cars.carSaleWebsite.dto.Listing.CRUD.FilterDto;
 import com.cars.carSaleWebsite.dto.Listing.ListingImageDto;
 import com.cars.carSaleWebsite.dto.UserFavorites.*;
 import com.cars.carSaleWebsite.dto.Vehicle.*;
@@ -16,6 +15,7 @@ import lombok.Data;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Function;
 
@@ -30,11 +30,15 @@ public class FavoritesMapper {
     private ColorRepository colorRepository;
     private EuroStandardRepository euroStandardRepository;
     private LocationRepository locationRepository;
+    private MakeRepository makeRepository;
+    private RegionRepository regionRepository;
+    private TypeRepository typeRepository;
 
     public FavoritesMapper(ModelRepository modelRepository, EngineRepository engineRepository,
                            GearboxRepository gearboxRepository, BodyRepository bodyRepository,
                            ColorRepository colorRepository, EuroStandardRepository euroStandardRepository,
-                           LocationRepository locationRepository) {
+                           LocationRepository locationRepository, MakeRepository makeRepository,
+                           RegionRepository regionRepository, TypeRepository typeRepository) {
         this.modelRepository = modelRepository;
         this.engineRepository = engineRepository;
         this.gearboxRepository = gearboxRepository;
@@ -42,6 +46,9 @@ public class FavoritesMapper {
         this.colorRepository = colorRepository;
         this.euroStandardRepository = euroStandardRepository;
         this.locationRepository = locationRepository;
+        this.makeRepository = makeRepository;
+        this.regionRepository = regionRepository;
+        this.typeRepository = typeRepository;
     }
 
     public FilterPaginationResponseDto toFilterPagination(Page<FavoriteFilter> listings, List<FavoriteFilterResponseDto> content){
@@ -121,23 +128,29 @@ public class FavoritesMapper {
     public FavoriteFilter toEntity(FilterDto filter, UserEntity user){
         FavoriteFilter mapped = new FavoriteFilter();
 
+        Make make = makeRepository.findByIdOrNull(filter.getMake()).orElse(null);
         Model model = modelRepository.findByIdOrNull(filter.getModel()).orElse(null);
         Engine engine = engineRepository.findByIdOrNull(filter.getEngine()).orElse(null);
         Gearbox gearbox = gearboxRepository.findByIdOrNull(filter.getGearbox()).orElse(null);
+        Type type = typeRepository.findByIdOrNull(filter.getType()).orElse(null);
         Body body = bodyRepository.findByIdOrNull(filter.getBody()).orElse(null);
         Color color = colorRepository.findByIdOrNull(filter.getColor()).orElse(null);
         EuroStandard euroStandard = euroStandardRepository.findByIdOrNull(filter.getEuroStandard()).orElse(null);
+        Region region = regionRepository.findByIdOrNull(filter.getRegion()).orElse(null);
         Location location = locationRepository.findByIdOrNull(filter.getLocation()).orElse(null);
 
         mapped.setUserEntity(user);
         mapped.setName(filter.getName());
         mapped.setIsNotify(true);
+        mapped.setMake(make);
         mapped.setModel(model);
         mapped.setEngine(engine);
         mapped.setGearbox(gearbox);
+        mapped.setType(type);
         mapped.setBody(body);
         mapped.setColor(color);
         mapped.setEuroStandard(euroStandard);
+        mapped.setRegion(region);
         mapped.setLocation(location);
 
         mapped.setPriceStart(filter.getPriceStart());
@@ -195,6 +208,35 @@ public class FavoritesMapper {
         mapped.setTotalElements(listings.getTotalElements());
         mapped.setFirst(listings.isFirst());
         mapped.setLast(listings.isLast());
+
+        return mapped;
+    }
+
+    public FilterDto toFilterDtoFromFavoriteFilter(FavoriteFilter favorite, LocalDate startDate){
+        FilterDto mapped = new FilterDto();
+
+        mapped.setMake(safeGet(favorite.getMake(), Make::getId));
+        mapped.setModel(safeGet(favorite.getModel(), Model::getId));
+        mapped.setGearbox(safeGet(favorite.getGearbox(), Gearbox::getId));
+        mapped.setType(safeGet(favorite.getType(), Type::getId));
+        mapped.setBody(safeGet(favorite.getBody(), Body::getId));
+        mapped.setColor(safeGet(favorite.getColor(), Color::getId));
+        mapped.setEuroStandard(safeGet(favorite.getEuroStandard(), EuroStandard::getId));
+        mapped.setRegion(safeGet(favorite.getRegion(), Region::getId));
+        mapped.setLocation(safeGet(favorite.getLocation(), Location::getId));
+
+        mapped.setManufactureDateEnd(favorite.getManufactureDateStart());
+        mapped.setManufactureDateEnd(favorite.getManufactureDateEnd());
+        mapped.setPriceStart(favorite.getPriceStart());
+        mapped.setPriceEnd(favorite.getPriceEnd());
+        mapped.setHorsepowerStart(favorite.getHorsepowerStart());
+        mapped.setHorsepowerEnd(favorite.getHorsepowerEnd());
+        mapped.setMileageStart(favorite.getMileageStart());
+        mapped.setMileageEnd(favorite.getMileageEnd());
+        mapped.setEngineDisplacementStart(favorite.getEngineDisplacementStart());
+        mapped.setEngineDisplacementEnd(favorite.getEngineDisplacementEnd());
+        mapped.setCreatedStart(startDate);
+        mapped.setCreatedEnd(LocalDate.now());
 
         return mapped;
     }

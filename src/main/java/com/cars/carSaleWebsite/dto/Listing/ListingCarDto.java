@@ -4,6 +4,7 @@ import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 @Data
@@ -15,8 +16,8 @@ public class ListingCarDto
     private String model;
 
     private BigDecimal price;
-    private Date createdAt;
-    private Date editedAt;
+    private LocalDate createdAt;
+    private LocalDate editedAt;
     private Integer horsepower;
     private Integer mileage;
     private String description;
@@ -29,7 +30,7 @@ public class ListingCarDto
     private String color;
     private String euroStandard;
     private Boolean isActive;
-    private Date manufactureDate;
+    private LocalDate manufactureDate;
     private String type;
     private String body;
     private String location;

@@ -5,7 +5,7 @@ import com.cars.carSaleWebsite.dto.Listing.CRUD.CreateCarListingDto;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.FormOptionsDto;
 import com.cars.carSaleWebsite.dto.Listing.*;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.PatchCarListingDto;
-import com.cars.carSaleWebsite.dto.UserFavorites.FilterDto;
+import com.cars.carSaleWebsite.dto.Listing.CRUD.FilterDto;
 import com.cars.carSaleWebsite.exceptions.NotFoundException;
 import com.cars.carSaleWebsite.helpers.BodyCreator;
 import com.cars.carSaleWebsite.helpers.ListingSpecification;
@@ -28,31 +28,27 @@ import com.cars.carSaleWebsite.service.ListingImageService;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service("listingCarService")
@@ -169,18 +165,20 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
             listingVehicleRepository.save(newListing);
 
             if (!(images.getFirst().isEmpty())) {
-                for (int i = 0; i < images.size(); i++) {
+                for (MultipartFile i : images) {
                     ListingImage listImage = new ListingImage();
 
-                    Map uploadResult = cloudinary.uploader().upload(images.get(i).getBytes(), ObjectUtils.emptyMap());
+                    Map uploadResult = cloudinary.uploader().upload(i.getBytes(), ObjectUtils.emptyMap());
 
-                    listImage.setType(images.get(i).getContentType());
+                    listImage.setType(i.getContentType());
                     listImage.setUrl(uploadResult.get("secure_url").toString());
                     listImage.setPublicId(uploadResult.get("public_id").toString());
                     listImage.setListingId(newListing);
                     listImage.setMain(true);
 
-                    if (car.getMainImgIndex() == i) {
+                    String imgname = getTextBeforeDot(i.getOriginalFilename());
+
+                    if (imgname.equals(car.getMainImgId().toString())) {
                         listImage.setMain(true);
                     } else {
                         listImage.setMain(false);
@@ -342,7 +340,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
             newcar.setId(nowcar.getId());
 
             patch(nowcar, newcar);
-            nowcar.setEditedAt(new Date());
+            nowcar.setEditedAt(LocalDate.now());
 
             listingVehicleRepository.save(nowcar);
             List<ListingImage> imagesDb = listingImageRepository.getAllListingImagesByListing(newcar);
@@ -423,7 +421,6 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
         }
     }
 
-    @Transactional
     @Override
     public Map<String, Object> searchCarByCriteria(FilterDto filterDto, int pageNo, int pageSize, String sortBy, String sortDirection) {
         try{
@@ -464,6 +461,16 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
             return body;
         } catch (Exception ex) {
             return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public List<ListingVehicle> searchCarByCriteria(FilterDto filterDto) {
+        try{
+            Sort sort = Sort.by(Sort.Direction.fromString("ASC"), "price");
+
+            return listingVehicleRepository.findAll(ListingSpecification.filters(filterDto), sort);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -607,6 +614,14 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
             return input.substring(0, dotIndex);
         } else {
             return input; // No dot found, return the original string
+        }
+    }
+
+    public <T, R> R safeGet(T obj, Function<T, R> getter) {
+        try {
+            return (obj != null) ? getter.apply(obj) : null;
+        } catch (NullPointerException e) {
+            return null;
         }
     }
 }

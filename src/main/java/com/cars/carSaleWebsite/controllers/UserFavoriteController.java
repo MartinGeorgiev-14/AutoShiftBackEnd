@@ -1,6 +1,6 @@
 package com.cars.carSaleWebsite.controllers;
 
-import com.cars.carSaleWebsite.dto.UserFavorites.FilterDto;
+import com.cars.carSaleWebsite.dto.Listing.CRUD.FilterDto;
 import com.cars.carSaleWebsite.service.UserFavoriteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -55,7 +55,7 @@ public class UserFavoriteController {
 
     @PatchMapping("listing/change/notify/{id}")
     public ResponseEntity<Map<String, Object>> changeFavoriteListingNotify(@PathVariable UUID id){
-        Map<String, Object> body = userFavoriteService.changeFavoriteFilterNotify(id);
+        Map<String, Object> body = userFavoriteService.changeFavoriteListingNotify(id);
         Integer status = (Integer) body.get("status");
 
         if(status != 200)

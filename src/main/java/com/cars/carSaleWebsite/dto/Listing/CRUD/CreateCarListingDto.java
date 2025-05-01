@@ -6,6 +6,7 @@ import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -24,13 +25,13 @@ public class CreateCarListingDto {
     private UUID engine;
     private UUID gearbox;
     private Integer engineDisplacement;
-    private Integer mainImgIndex;
+    private UUID mainImgId;
 //    private UUID mainImgId;
 //    private List<ListingImageDto> images;
     private UUID color;
     private UUID euroStandard;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private Date manufactureDate;
+    private LocalDate manufactureDate;
 //    private Boolean isActive;
 
 //    private String type;

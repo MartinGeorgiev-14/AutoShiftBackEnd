@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface FavoriteFilterRepository extends JpaRepository<FavoriteFilter, UUID> {
@@ -16,4 +17,6 @@ public interface FavoriteFilterRepository extends JpaRepository<FavoriteFilter, 
 //    @Param("user")
     Page<FavoriteFilter> findFavoriteFiltersByUserEntity(UserEntity user, Pageable pageable);
 
+    @Query("SELECT f FROM FavoriteFilter f WHERE f.userEntity = :user AND f.isNotify = true")
+    List<FavoriteFilter> findFavoriteFiltersByUserEntity(@Param("user") UserEntity user);
 }

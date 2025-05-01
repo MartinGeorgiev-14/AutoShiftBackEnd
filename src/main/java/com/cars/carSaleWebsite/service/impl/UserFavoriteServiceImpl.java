@@ -2,6 +2,7 @@ package com.cars.carSaleWebsite.service.impl;
 
 import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
 import com.cars.carSaleWebsite.dto.Listing.*;
+import com.cars.carSaleWebsite.dto.Listing.CRUD.FilterDto;
 import com.cars.carSaleWebsite.dto.UserFavorites.*;
 import com.cars.carSaleWebsite.helpers.BodyCreator;
 import com.cars.carSaleWebsite.helpers.MessageCreator;
