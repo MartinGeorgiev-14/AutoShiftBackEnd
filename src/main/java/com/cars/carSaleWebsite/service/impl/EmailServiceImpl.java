@@ -4,19 +4,26 @@ import com.cars.carSaleWebsite.dto.Listing.CRUD.FilterDto;
 import com.cars.carSaleWebsite.helpers.UserIdentificator;
 import com.cars.carSaleWebsite.mappers.FavoritesMapper;
 import com.cars.carSaleWebsite.models.entities.email.EmailDetails;
+import com.cars.carSaleWebsite.models.entities.listing.EditHistory;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
 import com.cars.carSaleWebsite.models.entities.userFavorites.FavoriteFilter;
+import com.cars.carSaleWebsite.models.entities.userFavorites.FavoriteListing;
+import com.cars.carSaleWebsite.repository.EditHistoryRepository;
 import com.cars.carSaleWebsite.repository.FavoriteFilterRepository;
+import com.cars.carSaleWebsite.repository.FavoriteListingRepository;
 import com.cars.carSaleWebsite.repository.UserEntityRepository;
 import com.cars.carSaleWebsite.service.EmailService;
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.mapstruct.control.MappingControl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -33,19 +40,23 @@ public class EmailServiceImpl implements EmailService {
     private final FavoriteFilterRepository favoriteFilterRepository;
     private final ListingVehicleServiceImpl listingVehicleService;
     private final FavoritesMapper favoritesMapper;
+    private final EditHistoryRepository editHistoryRepository;
+    private final FavoriteListingRepository favoriteListingRepository;
 
     @Value("${spring.mail.username}") private String sender;
 
     @Autowired
     public EmailServiceImpl(JavaMailSender javaMailSender, UserIdentificator userIdentificator,
                             UserEntityRepository userEntityRepository, FavoriteFilterRepository favoriteFilterRepository,
-                            ListingVehicleServiceImpl listingVehicleService, FavoritesMapper favoritesMapper) {
+                            ListingVehicleServiceImpl listingVehicleService, FavoritesMapper favoritesMapper, EditHistoryRepository editHistoryRepository, FavoriteListingRepository favoriteListingRepository) {
         this.javaMailSender = javaMailSender;
         this.userIdentificator = userIdentificator;
         this.userEntityRepository = userEntityRepository;
         this.favoriteFilterRepository = favoriteFilterRepository;
         this.listingVehicleService = listingVehicleService;
         this.favoritesMapper = favoritesMapper;
+        this.editHistoryRepository = editHistoryRepository;
+        this.favoriteListingRepository = favoriteListingRepository;
     }
 
     @Override
@@ -90,7 +101,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
 //    @Scheduled(cron = "0 0 8 * * *")
-    public void sendDailyFavoriteFilterNotification() throws Exception {
+    public void sendDailyFavoriteFilterNotification(){
         try {
             List<UserEntity> users = userEntityRepository.findAll();
 
@@ -209,7 +220,68 @@ public class EmailServiceImpl implements EmailService {
                 }
             }
         } catch (Exception ex) {
-            throw new Exception(ex);
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public void sendDailyFavoriteListingNotification(){
+        try{
+            List<UserEntity> users = userEntityRepository.findAll();
+
+            for(UserEntity user : users){
+                List<FavoriteListing> listings = favoriteListingRepository.findFavoriteListingsByUser(user);
+
+                if(listings.isEmpty()) continue;
+
+                MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+
+                helper.setFrom(sender);
+                helper.setTo(user.getEmail());
+                helper.setSubject("New listings for saved filters");
+
+                LocalDate date = LocalDate.now();
+                String displayDate = date.getDayOfMonth() + "/" + date.getMonthValue() + "/" + date.getYear();
+                StringBuilder sb = new StringBuilder();
+                String html = "<html>" +
+                        "<body>" +
+                        "<b>Hello!</b>" +
+                        "<p>There are new price change notifications from favorite listings for: " + displayDate + "</p>" +
+                        "<div class='container'></div>";
+                String htmlEnd = "</body> </html>";
+
+                sb.append(html);
+
+                for(FavoriteListing l : listings){
+
+                    EditHistory h = editHistoryRepository.getListingFromYesterday(l.getListingVehicle().getId(), LocalDate.now().minusDays(1));
+
+                    if(h == null || !l.getIsNotify()) continue;
+
+                    sb.append("<br><div>");
+
+                    sb.append("<h2>" + h.getListingVehicle().getModel().getMake().getName() + " " + h.getListingVehicle().getModel().getName() + "</h2>");
+                    sb.append("<p>Old price: " + h.getOldPrice() + " New price: " + h.getNewPrice() + "</p>");
+                    sb.append("<a href='http://localhost:8080/api/app/" + h.getListingVehicle().getId() + "'>See Listing</a>");
+                }
+
+                sb.append(htmlEnd);
+
+                helper.setText(sb.toString(), true);
+
+                Boolean tst = sb.toString().contains("</a>");
+
+                if(sb.toString().contains("</a>")){
+                    javaMailSender.send(mimeMessage);
+                }
+
+            }
+
+            List<EditHistory> history = editHistoryRepository.getListingFromYesterdayList(LocalDate.now().minusDays(1));
+            editHistoryRepository.deleteAll(history);
+
+        } catch (RuntimeException | MessagingException e) {
+            throw new RuntimeException(e);
         }
     }
 

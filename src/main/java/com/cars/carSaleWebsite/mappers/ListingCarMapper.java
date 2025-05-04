@@ -115,7 +115,7 @@ public class ListingCarMapper {
         newCar.setLocation(location);
         newCar.setColor(color);
         newCar.setEuroStandard(euroStandard);
-        newCar.setIsActive(true);
+        newCar.setIsActive(car.getIsActive());
         newCar.setManufactureDate(car.getManufactureDate());
 
         return newCar;

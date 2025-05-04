@@ -59,8 +59,15 @@ public class TESTEmailController {
         return status;
     }
 
-    @PostMapping("app/send/daily")
-    public void sendDailyFavoriteFilterNotification() throws Exception {
+    @PostMapping("app/send/dailyFilter")
+    public void sendDailyFavoriteFilterNotification() {
         emailService.sendDailyFavoriteFilterNotification();
     }
+
+    @PostMapping("app/send/dailyListings")
+    public void sendDailyFavoriteListingNotification(){
+        emailService.sendDailyFavoriteListingNotification();
+    }
+
+
 }

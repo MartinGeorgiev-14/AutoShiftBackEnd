@@ -8,6 +8,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.Data;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -15,7 +17,11 @@ import java.util.Date;
 public class EditHistory extends BaseAbstract {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "last_editor_id")
-    private UserEntity editor;
-    private Date editDate;
+    @JoinColumn(name = "listing_id")
+    private ListingVehicle listingVehicle;
+
+    private BigDecimal oldPrice;
+    private BigDecimal newPrice;
+
+    private LocalDate date;
 }

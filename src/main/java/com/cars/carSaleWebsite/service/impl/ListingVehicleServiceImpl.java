@@ -15,6 +15,7 @@ import com.cars.carSaleWebsite.mappers.FavoritesMapper;
 import com.cars.carSaleWebsite.mappers.ListingCarMapper;
 import com.cars.carSaleWebsite.mappers.ListingImageMapper;
 import com.cars.carSaleWebsite.mappers.UserEntityMapper;
+import com.cars.carSaleWebsite.models.entities.listing.EditHistory;
 import com.cars.carSaleWebsite.models.entities.listing.ListingImage;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
@@ -46,6 +47,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
@@ -77,6 +80,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
    private final EuroStandardRepository euroStandardRepository;
    private final ColorRepository colorRepository;
    private final UserIdentificator userIdentificator;
+   private final EditHistoryRepository editHistoryRepository;
 
 
     @Autowired
@@ -90,7 +94,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
                                      JWTGenerator jwtGenerator, TypeRepository typeRepository,
                                      MakeRepository makeRepository, RegionRepository regionRepository,
                                      BodyCreator bodyCreator, MessageCreator messageCreator, EuroStandardRepository euroStandardRepository,
-                                     ColorRepository colorRepository, UserIdentificator userIdentificator) {
+                                     ColorRepository colorRepository, UserIdentificator userIdentificator, EditHistoryRepository editHistoryRepository) {
         this.listingVehicleRepository = listingVehicleRepository;
         this.userEntityRepository = userEntityRepository;
         this.listingCarMapper = listingCarMapper;
@@ -114,6 +118,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
         this.euroStandardRepository = euroStandardRepository;
         this.colorRepository = colorRepository;
         this.userIdentificator = userIdentificator;
+        this.editHistoryRepository = editHistoryRepository;
     }
 
     @Override
@@ -299,6 +304,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
             listingImageRepository.deleteListingById(car);
             listingVehicleRepository.delete(car);
+            editHistoryRepository.deleteByListingId(car.getId());
 
             Map<String, Object> body = bodyCreator.create();
             Message message = messageCreator.create(true, "Listing Deleted", "Listing has been deleted successfully", "success");
@@ -338,6 +344,33 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
             ListingVehicle newcar = listingCarMapper.toEntityPatch(carDto, user, model, engine, gearbox, body, location, color, euroStandard);
             newcar.setId(nowcar.getId());
+
+            if(nowcar.getPrice().compareTo(carDto.getPrice()) != 0 && carDto.getPrice() != null){
+
+                EditHistory isAlreadySave = editHistoryRepository.getListingFromYesterday(nowcar.getId(), LocalDate.now().minusDays(1));
+
+                if(isAlreadySave != null){
+                    isAlreadySave.setListingVehicle(nowcar);
+                    isAlreadySave.setOldPrice(nowcar.getPrice());
+                    isAlreadySave.setNewPrice(carDto.getPrice());
+
+                    if(LocalDateTime.now().isBefore(LocalDateTime.now().with(LocalTime.of(9, 0)))){
+                        isAlreadySave.setDate(LocalDate.now().minusDays(1));
+                    }
+                    else{
+                        isAlreadySave.setDate(LocalDate.now());
+                    }
+                    editHistoryRepository.save(isAlreadySave);
+                }
+                else{
+                    EditHistory history = new EditHistory();
+                    history.setListingVehicle(nowcar);
+                    history.setOldPrice(nowcar.getPrice());
+                    history.setNewPrice(carDto.getPrice());
+                    history.setDate(LocalDate.now());
+                    editHistoryRepository.save(history);
+                }
+            }
 
             patch(nowcar, newcar);
             nowcar.setEditedAt(LocalDate.now());

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,6 +18,9 @@ import java.util.UUID;
 public interface FavoriteListingRepository extends JpaRepository<FavoriteListing, UUID> {
     @Query("SELECT f.listingVehicle FROM FavoriteListing f WHERE f.userEntity = :user")
     Page<ListingVehicle> findFavoriteListingsByUser(@Param("user") UserEntity user, Pageable pageable);
+
+    @Query("SELECT f FROM FavoriteListing f WHERE f.userEntity = :user")
+    List<FavoriteListing> findFavoriteListingsByUser(@Param("user") UserEntity user);
 
     @Query("SELECT f FROM FavoriteListing f WHERE f.userEntity = :user AND f.listingVehicle = :listing")
     FavoriteListing findFavoriteListingByListing(@Param("user") UserEntity user, @Param("listing") ListingVehicle listing);

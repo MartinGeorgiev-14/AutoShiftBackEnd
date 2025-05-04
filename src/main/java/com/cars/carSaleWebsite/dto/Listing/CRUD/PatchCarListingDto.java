@@ -27,6 +27,7 @@ public class PatchCarListingDto {
     private Integer mainImgIndex;
     private UUID mainImgId;
     private List<UUID> imgIdsToRemove;
+    private Boolean isActive;
     //    private UUID mainImgId;
 //    private List<ListingImageDto> images;
     private UUID color;

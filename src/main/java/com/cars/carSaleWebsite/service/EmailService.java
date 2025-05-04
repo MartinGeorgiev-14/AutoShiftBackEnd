@@ -8,5 +8,6 @@ public interface EmailService {
 
     String sendMailWithAttachment(EmailDetails details);
 
-    void sendDailyFavoriteFilterNotification() throws Exception;
+    void sendDailyFavoriteFilterNotification();
+    void sendDailyFavoriteListingNotification();
 }
