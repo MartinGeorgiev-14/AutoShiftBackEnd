@@ -4,16 +4,14 @@ import com.cars.carSaleWebsite.dto.Listing.*;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.CreateCarListingDto;
 import com.cars.carSaleWebsite.dto.Listing.CRUD.PatchCarListingDto;
 import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
-import com.cars.carSaleWebsite.dto.UserFavorites.FavoriteListingDto;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
 import com.cars.carSaleWebsite.models.entities.vehicle.*;
-import com.cars.carSaleWebsite.repository.UserEntityRepository;
+import com.cars.carSaleWebsite.repository.user.UserEntityRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
 @Component
@@ -53,6 +51,36 @@ public class ListingCarMapper {
         car.setRegion(vehicle.getLocation().getRegion().getRegion());
         car.setLocation(vehicle.getLocation().getLocation());
         car.setImages(images);
+
+        return car;
+
+    }
+
+    public ListingCarDto toDTO(ListingVehicle vehicle, UserEntityDto mappedUser){
+
+        ListingCarDto car = new ListingCarDto();
+
+        car.setBody(vehicle.getBody().getBody());
+        car.setId(vehicle.getId());
+        car.setDescription(vehicle.getDescription());
+        car.setEngine(vehicle.getEngine().getType());
+        car.setGearbox(vehicle.getGearbox().getType());
+        car.setMake(vehicle.getModel().getMake().getName());
+        car.setHorsepower(vehicle.getHorsepower());
+        car.setMileage(vehicle.getMileage());
+        car.setModel(vehicle.getModel().getName());
+        car.setType(vehicle.getBody().getType().getType());
+        car.setPrice(vehicle.getPrice());
+        car.setCreatedAt(vehicle.getCreatedAt());
+        car.setEditedAt(vehicle.getEditedAt());
+        car.setEngineDisplacement(vehicle.getEngineDisplacement());
+        car.setIsActive(vehicle.getIsActive());
+        car.setManufactureDate(vehicle.getManufactureDate());
+        car.setColor(vehicle.getColor().getColor());
+        car.setEuroStandard(vehicle.getEuroStandard().getStandard());
+        car.setUser(mappedUser);
+        car.setRegion(vehicle.getLocation().getRegion().getRegion());
+        car.setLocation(vehicle.getLocation().getLocation());
 
         return car;
 

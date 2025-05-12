@@ -1,10 +1,13 @@
 package com.cars.carSaleWebsite.helpers;
 
-import com.cars.carSaleWebsite.security.JWTGenerator;
+import com.cars.carSaleWebsite.config.security.JWTGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -20,6 +23,14 @@ public class UserIdentificator {
     @Autowired
     public UserIdentificator(JWTGenerator jwtGenerator) {
         this.jwtGenerator = jwtGenerator;
+    }
+
+    public User getCurrentUser(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof User) {
+            return (User) authentication.getPrincipal();
+        }
+        return null;
     }
 
     public String getCurrentUserId(){

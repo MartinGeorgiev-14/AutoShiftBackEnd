@@ -3,7 +3,7 @@ package com.cars.carSaleWebsite.service.impl;
 import com.cars.carSaleWebsite.dto.Listing.ListingImageDto;
 import com.cars.carSaleWebsite.models.entities.listing.ListingImage;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
-import com.cars.carSaleWebsite.repository.ListingImageRepository;
+import com.cars.carSaleWebsite.repository.listing.ListingImageRepository;
 import com.cars.carSaleWebsite.service.ListingImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

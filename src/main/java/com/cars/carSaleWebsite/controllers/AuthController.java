@@ -1,9 +1,9 @@
 package com.cars.carSaleWebsite.controllers;
 
 import com.cars.carSaleWebsite.dto.Authentication.*;
-import com.cars.carSaleWebsite.repository.RoleRepository;
-import com.cars.carSaleWebsite.repository.UserEntityRepository;
-import com.cars.carSaleWebsite.security.JWTGenerator;
+import com.cars.carSaleWebsite.repository.user.RoleRepository;
+import com.cars.carSaleWebsite.repository.user.UserEntityRepository;
+import com.cars.carSaleWebsite.config.security.JWTGenerator;
 import com.cars.carSaleWebsite.service.UserEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

@@ -1,7 +1,7 @@
 package com.cars.carSaleWebsite.controllers;
 
 import com.cars.carSaleWebsite.models.entities.listing.ListingImage;
-import com.cars.carSaleWebsite.repository.ListingImageRepository;
+import com.cars.carSaleWebsite.repository.listing.ListingImageRepository;
 import com.cars.carSaleWebsite.service.ListingImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

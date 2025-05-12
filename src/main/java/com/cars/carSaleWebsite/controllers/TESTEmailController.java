@@ -2,20 +2,14 @@ package com.cars.carSaleWebsite.controllers;
 
 import com.cars.carSaleWebsite.helpers.UserIdentificator;
 import com.cars.carSaleWebsite.models.entities.email.EmailDetails;
-import com.cars.carSaleWebsite.models.entities.user.UserEntity;
-import com.cars.carSaleWebsite.models.entities.userFavorites.FavoriteFilter;
-import com.cars.carSaleWebsite.repository.FavoriteFilterRepository;
-import com.cars.carSaleWebsite.repository.ListingVehicleRepository;
-import com.cars.carSaleWebsite.repository.UserEntityRepository;
+import com.cars.carSaleWebsite.repository.userFavorite.FavoriteFilterRepository;
+import com.cars.carSaleWebsite.repository.listing.ListingVehicleRepository;
+import com.cars.carSaleWebsite.repository.user.UserEntityRepository;
 import com.cars.carSaleWebsite.service.EmailService;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.UUID;
 
 @RequestMapping("/api/email/")
 @RestController
