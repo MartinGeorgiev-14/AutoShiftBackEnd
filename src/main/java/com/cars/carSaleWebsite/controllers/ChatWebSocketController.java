@@ -2,6 +2,7 @@ package com.cars.carSaleWebsite.controllers;
 
 import com.cars.carSaleWebsite.dto.chat.ChatMessageDTO;
 import com.cars.carSaleWebsite.dto.chat.ChatMessageRequestDto;
+import com.cars.carSaleWebsite.dto.chat.ConversationDto;
 import com.cars.carSaleWebsite.mappers.ChatMapper;
 import com.cars.carSaleWebsite.models.entities.chat.ChatMessage;
 import com.cars.carSaleWebsite.repository.chat.ChatMessageRepository;
@@ -45,6 +46,18 @@ public class ChatWebSocketController {
             ChatMessageDTO messageDTO = chatMapper.convertToChatMessageDto(savedMessage);
 
             messagingTemplate.convertAndSend("/topic/chat/" + conversationId, messageDTO);
+        }
+    }
+
+    @MessageMapping("/chat/{conversationId}/read")
+    public void conversationRead(@DestinationVariable UUID conversationId, Principal principal){
+        String username = principal.getName();
+
+        if(chatService.canAccessConversation(conversationId, username)){
+
+            ConversationDto conversation = chatService.readConversation(conversationId, username);
+
+            messagingTemplate.convertAndSend("/topic/chat/" + conversationId, conversation);
         }
     }
 }

@@ -29,6 +29,9 @@ public class Conversation {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    private Boolean isReadBySeller;
+    private Boolean isReadByBuyer;
+
 //    @Column(name = "unique_identifier", unique = true)
 //    private String uniqueIdentifier;
 }

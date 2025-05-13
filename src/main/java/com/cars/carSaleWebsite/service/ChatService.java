@@ -20,4 +20,5 @@ public interface ChatService {
     public List<Conversation> getBuyerConversations(UUID buyerId);
     public List<Conversation> getListingConversations(UUID listingId, UUID sellerId);
     public List<Conversation> getSellerAllConversations(UUID sellerId);
+    public ConversationDto readConversation(UUID conversationId, String senderUsername);
 }

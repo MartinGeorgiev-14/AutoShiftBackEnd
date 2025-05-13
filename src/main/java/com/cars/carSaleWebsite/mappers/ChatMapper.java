@@ -51,6 +51,8 @@ public class ChatMapper {
         dto.setLastName(conversation.getListingVehicle().getUserEntity().getLastName());
         dto.setPhone(conversation.getListingVehicle().getUserEntity().getPhone());
         dto.setCreatedAt(conversation.getCreatedAt());
+        dto.setIsReadByBuyer(conversation.getIsReadByBuyer());
+        dto.setIsReadBySeller(conversation.getIsReadBySeller());
 
         return dto;
     }

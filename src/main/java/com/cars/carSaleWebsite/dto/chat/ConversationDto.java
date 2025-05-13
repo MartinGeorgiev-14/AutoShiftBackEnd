@@ -15,4 +15,6 @@ public class ConversationDto {
     private String lastName;
     private String phone;
     private LocalDateTime createdAt;
+    private Boolean isReadByBuyer;
+    private Boolean isReadBySeller;
 }

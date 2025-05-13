@@ -130,6 +130,36 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Transactional
+    public ConversationDto readConversation(UUID conversationId, String senderUsername){
+        try{
+            Optional<Conversation> conversation = Optional.of(conversationRepository.getReferenceById(conversationId));
+            Optional<UserEntity> user = Optional.ofNullable(userEntityRepository.findByUserByUsername(senderUsername));
+
+            if(conversation.isPresent() && user.isPresent()){
+                if(canAccessConversation(conversationId, senderUsername)){
+                    if(user.get().getId().equals(conversation.get().getBuyer().getId())){
+                        conversation.get().setIsReadByBuyer(true);
+                    }
+                    else{
+                        conversation.get().setIsReadBySeller(true);
+                    }
+
+                    conversationRepository.save(conversation.get());
+                    return chatMapper.convertToConversationDto(conversation.get());
+                }else {
+                    throw new AccessDeniedException("User cannot access this chat room");
+                }
+            }else{
+                throw new IllegalArgumentException("Chat room or sender not found");
+            }
+
+
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Transactional
     public ChatMessage sendMessage(UUID conversationId, String senderUsername, String content){
         try{
             Optional<Conversation> conversation = Optional.of(conversationRepository.getReferenceById(conversationId));
@@ -142,6 +172,16 @@ public class ChatServiceImpl implements ChatService {
                     message.setSender(sender.get());
                     message.setContent(content);
                     message.setTimestamp(LocalDateTime.now());
+                    conversation.get().setIsReadByBuyer(false);
+                    conversation.get().setIsReadBySeller(false);
+
+                    if(sender.get().getId().equals(conversation.get().getBuyer().getId())){
+                        conversation.get().setIsReadByBuyer(true);
+                    }
+                    else{
+                        conversation.get().setIsReadBySeller(true);
+                    }
+
 
                     return chatMessageRepository.save(message);
                 }
