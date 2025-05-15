@@ -8,6 +8,7 @@ import lombok.Data;
 import org.hibernate.annotations.CollectionId;
 import org.hibernate.annotations.Fetch;
 
+import java.security.PrivateKey;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,11 @@ public class Conversation {
 
     private Boolean isReadBySeller;
     private Boolean isReadByBuyer;
+
+    private Integer newMessageCounterBuyer;
+    private Integer newMessageCounterSeller;
+
+    private LocalDateTime lastTimeChatted;
 
 //    @Column(name = "unique_identifier", unique = true)
 //    private String uniqueIdentifier;

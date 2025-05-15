@@ -17,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -41,11 +42,9 @@ public class ChatWebSocketController {
         String senderUsername = principal.getName();
 
         if(chatService.canAccessConversation(conversationId, senderUsername)){
-            ChatMessage savedMessage = chatService.sendMessage(conversationId, senderUsername, messageRequest.getContent());
+            Map<String, Object> savedMessage = chatService.sendMessage(conversationId, senderUsername, messageRequest.getContent());
 
-            ChatMessageDTO messageDTO = chatMapper.convertToChatMessageDto(savedMessage);
-
-            messagingTemplate.convertAndSend("/topic/chat/" + conversationId, messageDTO);
+            messagingTemplate.convertAndSend("/topic/chat/" + conversationId, savedMessage);
         }
     }
 

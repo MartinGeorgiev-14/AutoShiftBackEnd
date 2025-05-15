@@ -24,10 +24,13 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
 //                                                @Param("listing") UUID listing);
 
     Optional<Conversation> findByListingVehicleIdAndBuyerId(UUID listingId, UUID buyerId);
-    List<Conversation> findByBuyerId(UUID buyerId);
-    List<Conversation> findByListingVehicleId(UUID listingId);
+    Page<Conversation> findByBuyerId(UUID buyerId, Pageable pageable);
+
+    @Query("SELECT cr FROM Conversation cr WHERE cr.listingVehicle.userEntity.id = :sellerId")
+    Page<Conversation> findBySellerId(@Param("sellerId") UUID sellerId, Pageable pageable);
+
+    Page<Conversation> findByListingVehicleId(UUID listingId, Pageable pageable);
 //    Optional<Conversation> findByUniqueIdentifier(String uniqueIdentifier);
     // Added to help find rooms by listing's seller ID
-    @Query("SELECT cr FROM Conversation cr WHERE cr.listingVehicle.userEntity.id = :sellerId")
-    List<Conversation> findByListingSellerId(@Param("sellerId") UUID sellerId);
+
 }

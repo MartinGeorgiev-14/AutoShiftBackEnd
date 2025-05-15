@@ -82,6 +82,7 @@ public class ListingCarMapper {
         car.setRegion(vehicle.getLocation().getRegion().getRegion());
         car.setLocation(vehicle.getLocation().getLocation());
 
+
         return car;
 
     }

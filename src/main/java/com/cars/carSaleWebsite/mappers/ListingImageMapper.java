@@ -11,6 +11,7 @@ public class ListingImageMapper {
         ListingImageDto mapped = new ListingImageDto();
 
         mapped.setMain(image.getIsMain());
+        mapped.setUrl(image.getUrl());
 //        mapped.setImageData(image.getImageData());
         mapped.setType(image.getType());
 

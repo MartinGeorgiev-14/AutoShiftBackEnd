@@ -9,11 +9,15 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ListingImageRepository extends JpaRepository<ListingImage, UUID> {
     @Query("SELECT lv FROM ListingImage lv WHERE lv.listingId = :id")
     List<ListingImage> getAllListingImagesByListing(@Param("id") ListingVehicle id);
+
+    @Query("SELECT lv FROM ListingImage lv WHERE lv.listingId = :id AND lv.isMain = true")
+    Optional<ListingImage> getMainImageByListing(@Param("id") ListingVehicle id);
 
     @Query("SELECT i FROM ListingImage i")
     HashSet<ListingImage> findAllImages();

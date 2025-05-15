@@ -17,4 +17,7 @@ public class ConversationDto {
     private LocalDateTime createdAt;
     private Boolean isReadByBuyer;
     private Boolean isReadBySeller;
+    private Integer newMessageCounterBuyer;
+    private Integer newMessageCounterSeller;
+    private LocalDateTime lastTimeChatted;
 }
