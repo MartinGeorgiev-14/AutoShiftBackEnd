@@ -1,7 +1,9 @@
 package com.cars.carSaleWebsite.dto.chat;
 
+import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
 import com.cars.carSaleWebsite.dto.Listing.ListingCarDto;
 import com.cars.carSaleWebsite.dto.Vehicle.BrandModelDto;
+import com.cars.carSaleWebsite.models.entities.user.UserEntity;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -14,6 +16,7 @@ public class ConversationDto {
     private String firstName;
     private String lastName;
     private String phone;
+    private UserEntityDto buyer;
     private LocalDateTime createdAt;
     private Boolean isReadByBuyer;
     private Boolean isReadBySeller;

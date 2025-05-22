@@ -1,5 +1,6 @@
 package com.cars.carSaleWebsite.dto.chat;
 
+import com.cars.carSaleWebsite.dto.Authentication.UserEntityDto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -13,4 +14,5 @@ public class ChatMessageDTO {
     private String senderUsername;
     private String content;
     private LocalDateTime timestamp;
+    private UserEntityDto senderUser;
 }

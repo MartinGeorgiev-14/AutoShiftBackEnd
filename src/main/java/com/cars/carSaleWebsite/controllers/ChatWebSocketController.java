@@ -54,7 +54,7 @@ public class ChatWebSocketController {
 
         if(chatService.canAccessConversation(conversationId, username)){
 
-            ConversationDto conversation = chatService.readConversation(conversationId, username);
+            Map<String, Object> conversation = chatService.readConversation(conversationId, username);
 
             messagingTemplate.convertAndSend("/topic/chat/" + conversationId, conversation);
         }

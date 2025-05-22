@@ -22,5 +22,6 @@ public interface ChatService {
     public Map<String, Object> getUserConversations(Integer pageNo, Integer pageSize, Boolean whatUser);
     public Map<String, Object> getListingConversations(UUID listingId, UUID sellerId, Integer pageNo, Integer pageSize);
     public List<Conversation> getSellerAllConversations(UUID sellerId);
-    public ConversationDto readConversation(UUID conversationId, String senderUsername);
+    public Map<String, Object> readConversation(UUID conversationId, String senderUsername);
+    Map<String, Object> getConversation(UUID conversationId);
 }

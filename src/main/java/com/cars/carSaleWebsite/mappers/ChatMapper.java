@@ -33,6 +33,10 @@ public class ChatMapper {
 
     public ChatMessageDTO convertToChatMessageDto(ChatMessage message){
         ChatMessageDTO dto = new ChatMessageDTO();
+        UserEntityDto userDto = new UserEntityDto();
+        UserEntity user = userEntityRepository.getReferenceById(message.getSender().getId());
+
+        dto.setSenderUser(userEntityMapper.toDTO(user));
         dto.setId(message.getId());
         dto.setConversationId(message.getConversation().getId());
         dto.setSenderId(message.getSender().getId());
@@ -60,6 +64,8 @@ public class ChatMapper {
         ConversationDto dto = new ConversationDto();
         UserEntity user = userEntityRepository.getReferenceById(conversation.getListingVehicle().getUserEntity().getId());
         UserEntityDto userDto = userEntityMapper.toDTO(user);
+        UserEntity buyer = userEntityRepository.getReferenceById(conversation.getBuyer().getId());
+        UserEntityDto buyerDto = userEntityMapper.toDTO(buyer);
         List<ListingImage> images = listingImageRepository.getAllListingImagesByListing(conversation.getListingVehicle());
         List<ListingImageDto> imagesDto = images.stream().map(listingImageMapper::toDTO).toList();
         ListingCarDto listingDto = listingCarMapper.toDTO(conversation.getListingVehicle(), userDto, imagesDto);
@@ -74,6 +80,8 @@ public class ChatMapper {
         dto.setIsReadBySeller(conversation.getIsReadBySeller());
         dto.setNewMessageCounterBuyer(conversation.getNewMessageCounterBuyer());
         dto.setNewMessageCounterSeller(conversation.getNewMessageCounterSeller());
+        dto.setBuyer(buyerDto);
+        dto.setLastTimeChatted(conversation.getLastTimeChatted());
 
         return dto;
     }

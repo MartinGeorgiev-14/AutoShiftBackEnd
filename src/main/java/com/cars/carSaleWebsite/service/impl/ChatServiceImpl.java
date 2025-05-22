@@ -118,6 +118,7 @@ public class ChatServiceImpl implements ChatService {
                     conversationRepository.save(newConversation);
 
                     message = messageCreator.create(false, "Conversation Created", "The Conversation has been created", "success");
+
                     body.put("response", chatMapper.convertToConversationDto(newConversation));
                     body.put("message", message);
                     body.put("status", HttpStatus.OK.value());
@@ -127,6 +128,41 @@ public class ChatServiceImpl implements ChatService {
                     throw new IllegalArgumentException("Listing or buyer not found");
                 }
             }
+        } catch (RuntimeException ex) {
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public Map<String, Object> getConversation(UUID conversationId){
+        try{
+            UUID userId = UUID.fromString(userIdentificator.getCurrentUserId());
+            Conversation existingConversation = conversationRepository.getReferenceById(conversationId);
+            Map<String, Object> body = bodyCreator.create();
+            Message message;
+
+            //checks if the user is the buyer
+            if (existingConversation.getBuyer().getId().equals(userId)) {
+                message = messageCreator.create(false, "Conversation Found", "The Conversation has been found", "success");
+                body.put("response", chatMapper.convertToConversationDto(existingConversation));
+                body.put("message", message);
+                body.put("status", HttpStatus.OK.value());
+                return body;
+            }
+            //checks if the user is seller
+            else if(existingConversation.getListingVehicle().getUserEntity().getId().equals(userId)){
+                message = messageCreator.create(false, "Conversation Found", "The Conversation has been found", "success");
+                body.put("response", chatMapper.convertToConversationDto(existingConversation));
+                body.put("message", message);
+                body.put("status", HttpStatus.OK.value());
+                return body;
+            }
+            else{
+                message = messageCreator.create(true, "Conversation Not Found", "The Conversation has not been found", "error");
+                body.put("message", message);
+                body.put("status", HttpStatus.BAD_REQUEST);
+                return body;
+            }
+
         } catch (RuntimeException ex) {
             return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -160,7 +196,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Transactional
-    public ConversationDto readConversation(UUID conversationId, String senderUsername){
+    public Map<String, Object> readConversation(UUID conversationId, String senderUsername){
         try{
             Optional<Conversation> conversation = Optional.of(conversationRepository.getReferenceById(conversationId));
             Optional<UserEntity> user = Optional.ofNullable(userEntityRepository.findByUserByUsername(senderUsername));
@@ -176,9 +212,16 @@ public class ChatServiceImpl implements ChatService {
                         conversation.get().setNewMessageCounterSeller(0);
                     }
 
-                    conversation.get().setLastTimeChatted(LocalDateTime.now());
                     conversationRepository.save(conversation.get());
-                    return chatMapper.convertToConversationDto(conversation.get());
+                    Map<String, Object> body = bodyCreator.create();
+                    Message message = messageCreator.create(false, "Messages Found", "Messages has been found", "success");
+
+                    body.put("type", "conversation");
+                    body.put("response", chatMapper.convertToConversationDto(conversation.get()));
+                    body.put("message", message);
+                    body.put("status", HttpStatus.OK.value());
+
+                    return body;
 
                 }else {
                     throw new AccessDeniedException("User cannot access this chat room");
@@ -186,8 +229,6 @@ public class ChatServiceImpl implements ChatService {
             }else{
                 throw new IllegalArgumentException("Chat room or sender not found");
             }
-
-
         } catch (RuntimeException e) {
             throw new RuntimeException(e);
         }
@@ -228,7 +269,7 @@ public class ChatServiceImpl implements ChatService {
                     Map<String, Object> body = bodyCreator.create();
                     Message messageBody = messageCreator.create(false, "Message send", "The message has been send", "success");
 
-
+                    body.put("type", "message");
                     body.put("response", messageDTO);
                     body.put("message", messageBody);
                     body.put("status", HttpStatus.OK.value());
@@ -242,8 +283,8 @@ public class ChatServiceImpl implements ChatService {
             else {
                 throw new IllegalArgumentException("Chat room or sender not found");
             }
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
+        } catch (RuntimeException ex) {
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -259,6 +300,7 @@ public class ChatServiceImpl implements ChatService {
 
                 Map<String, Object> body = bodyCreator.create();
                 Message message = messageCreator.create(false, "Messages Found", "Messages has been found", "success");
+
 
                 body.put("response", chatMapper.toChatMessagePaginationDto(messagesDto, pageConversation));
                 body.put("message", message);
@@ -278,7 +320,7 @@ public class ChatServiceImpl implements ChatService {
         try{
             UUID userId = UUID.fromString(userIdentificator.getCurrentUserId());
             UserEntity user = userEntityRepository.getReferenceById(userId);
-            Sort sort = Sort.by(Sort.Direction.DESC, "lastTimeChatted");
+            Sort sort = Sort.by(Sort.Direction.ASC, "lastTimeChatted");
             Pageable pageRequest = PageRequest.of(pageNo, pageSize, sort);
 
             Page<Conversation> conversations;

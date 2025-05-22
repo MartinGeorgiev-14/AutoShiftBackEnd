@@ -33,14 +33,24 @@ public class ChatController {
     public ResponseEntity<Map<String, Object>> getOrCreateChatRoom(
             @PathVariable UUID listingId) {
 
-        User user = userIdentificator.getCurrentUser();
         String userId = userIdentificator.getCurrentUserId();
 
-//        if (!userId.equals(buyerId) /* && !isAdmin(user) */) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-//        }
-
         Map<String, Object> body = chatService.getOrCreateConversation(listingId, UUID.fromString(userId));
+        Integer status = (Integer) body.get("status");
+
+        if(status != 200)
+        {
+            return new ResponseEntity<>(body, HttpStatus.valueOf(status));
+        }
+
+        return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+
+    @GetMapping("conversations/get/{conversationId}")
+    ResponseEntity<Map<String, Object>> getConversation(
+            @PathVariable UUID conversationId){
+
+        Map<String, Object> body = chatService.getConversation(conversationId);
         Integer status = (Integer) body.get("status");
 
         if(status != 200)
@@ -75,7 +85,7 @@ public class ChatController {
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
-    @GetMapping("/user/conversations")
+    @PostMapping("/user/conversations")
     public ResponseEntity<Map<String, Object>> getBuyerConversation(
             @RequestParam(required = false, value = "pageNo", defaultValue = "0") Integer pageNo,
             @RequestParam(required = false, value = "pageSize", defaultValue = "10") Integer pageSize,
