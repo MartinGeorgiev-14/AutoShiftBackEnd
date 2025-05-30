@@ -229,7 +229,7 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
             Map<String, Object> body = bodyCreator.create();
             Message message = messageCreator.create(false, "Favorite Filters Found", "The favorite filters have been found", "success");
 
-            body.put("listings", response);
+            body.put("filters", response);
             body.put("message", message);
             body.put("status", HttpStatus.OK.value());
 

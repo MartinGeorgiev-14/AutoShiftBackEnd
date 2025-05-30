@@ -19,11 +19,13 @@ import com.cars.carSaleWebsite.models.entities.listing.EditHistory;
 import com.cars.carSaleWebsite.models.entities.listing.ListingImage;
 import com.cars.carSaleWebsite.models.entities.listing.ListingVehicle;
 import com.cars.carSaleWebsite.models.entities.user.UserEntity;
+import com.cars.carSaleWebsite.models.entities.userFavorites.FavoriteListing;
 import com.cars.carSaleWebsite.models.entities.vehicle.*;
 import com.cars.carSaleWebsite.models.entities.vehicle.Color;
 import com.cars.carSaleWebsite.models.nonEntity.Message;
 import com.cars.carSaleWebsite.repository.listing.*;
 import com.cars.carSaleWebsite.repository.user.UserEntityRepository;
+import com.cars.carSaleWebsite.repository.userFavorite.FavoriteListingRepository;
 import com.cars.carSaleWebsite.repository.vehicle.*;
 import com.cars.carSaleWebsite.config.security.JWTGenerator;
 import com.cars.carSaleWebsite.service.ListingVehicleService;
@@ -83,6 +85,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
    private final ColorRepository colorRepository;
    private final UserIdentificator userIdentificator;
    private final EditHistoryRepository editHistoryRepository;
+   private final FavoriteListingRepository favoriteListingRepository;
 
 
     @Autowired
@@ -96,7 +99,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
                                      JWTGenerator jwtGenerator, TypeRepository typeRepository,
                                      MakeRepository makeRepository, RegionRepository regionRepository,
                                      BodyCreator bodyCreator, MessageCreator messageCreator, EuroStandardRepository euroStandardRepository,
-                                     ColorRepository colorRepository, UserIdentificator userIdentificator, EditHistoryRepository editHistoryRepository) {
+                                     ColorRepository colorRepository, UserIdentificator userIdentificator, EditHistoryRepository editHistoryRepository, FavoriteListingRepository favoriteListingRepository) {
         this.listingVehicleRepository = listingVehicleRepository;
         this.userEntityRepository = userEntityRepository;
         this.listingCarMapper = listingCarMapper;
@@ -121,6 +124,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
         this.colorRepository = colorRepository;
         this.userIdentificator = userIdentificator;
         this.editHistoryRepository = editHistoryRepository;
+        this.favoriteListingRepository = favoriteListingRepository;
     }
 
     @Override
@@ -244,14 +248,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
             UserEntity user = userEntityRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User was not found"));
             Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
             Pageable pageRequest = PageRequest.of(pageNo, pageSize, sort);
-            Page<ListingVehicle> listings;
-            if(isActive){
-                listings = listingVehicleRepository.findAllByIsActiveTrueAndUserEntity(user, pageRequest);
-            }
-            else{
-                listings = listingVehicleRepository.findAllByIsActiveFalseAndUserEntity(user, pageRequest);
-            }
-
+            Page<ListingVehicle> listings = listingVehicleRepository.findByUserEntity(user, pageRequest);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null) {
@@ -290,6 +287,40 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
         }
 
     }
+
+    public Map<String, Object> getByPageByCreatedAt(int pageNo, int pageSize) {
+        try{
+            Pageable pageRequest = PageRequest.of(pageNo, pageSize);
+            Page<ListingVehicle> listings = listingVehicleRepository.findBySortedCreatedAt(pageRequest);
+
+            List<ListingCarDto> content = listings.stream().map(c -> {
+                List<ListingImage> images = listingImageRepository.getAllListingImagesByListing(c);
+                List<ListingImageDto> mappedImages =  listingImageService.getAllImagesOfListingById(c);
+                UserEntityDto mappeedUser = userEntityMapper.toDTO(c.getUserEntity());
+                ListingCarDto mapped = listingCarMapper.toDTO(c, mappeedUser, mappedImages);
+
+                return mapped;
+            }).collect(Collectors.toList());
+
+            CarPaginationResponse response = listingCarMapper.toPagination(listings, content);
+
+            Map<String, Object> body = bodyCreator.create();
+            Message message = messageCreator.create(false, "Listings Found", "The listing you've searched have been found", "success");
+
+            body.put("listings", response);
+            body.put("message", message);
+            body.put("status", HttpStatus.OK.value());
+
+            return body;
+        } catch (ResponseStatusException ex) {
+            return messageCreator.createErrorResponse(ex.getReason(), ex.getStatusCode());
+        }
+        catch (Exception ex){
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
+    }
+
 
     @Override
     @Transactional
@@ -347,7 +378,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
             ListingVehicle newcar = listingCarMapper.toEntityPatch(carDto, user, model, engine, gearbox, body, location, color, euroStandard);
             newcar.setId(nowcar.getId());
 
-            if(nowcar.getPrice().compareTo(carDto.getPrice()) != 0 && carDto.getPrice() != null){
+            if(carDto.getPrice() != null && nowcar.getPrice().compareTo(carDto.getPrice()) != 0){
 
                 EditHistory isAlreadySave = editHistoryRepository.getListingFromYesterday(nowcar.getId(), LocalDate.now().minusDays(1));
 
@@ -459,6 +490,15 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
     @Override
     public Map<String, Object> searchCarByCriteria(FilterDto filterDto, int pageNo, int pageSize, String sortBy, String sortDirection) {
         try{
+            String token = userIdentificator.getCurrentUserIdOrNull();
+            UserEntity currentUser;
+
+            if(token != null){
+                currentUser = userEntityRepository.getReferenceById(UUID.fromString(token));
+            } else {
+                currentUser = null;
+            }
+
             Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
             Pageable pageRequest = PageRequest.of(pageNo, pageSize, sort);
 
@@ -468,14 +508,19 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
 
             List<ListingCarDto> content = listings.stream().map(c -> {
                 UserEntity user = userEntityRepository.findById(c.getUserEntity().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
+                Boolean favListing = null;
+
+                if(currentUser != null){
+                    favListing = favoriteListingRepository.existsByUserEntityAndListingVehicle(currentUser, c);
+                }
+
                 UserEntityDto mappedUser = userEntityMapper.toDTO(user);
                 List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(c);
 
-                ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser, images);
+                ListingCarDto mappedListing = listingCarMapper.toDTO(c, mappedUser, images, favListing);
 
                 return mappedListing;
             }).collect(Collectors.toList());
-
 
             CarPaginationResponse response = new CarPaginationResponse();
             response.setContent(content);

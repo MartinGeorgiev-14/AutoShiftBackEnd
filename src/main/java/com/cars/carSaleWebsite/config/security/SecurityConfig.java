@@ -43,6 +43,7 @@ public class SecurityConfig {
                         auth
                                 // Public endpoints
                                 .requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/app/**").permitAll()
 
                                 //User Admin endpoints
                                 .requestMatchers(HttpMethod.POST, "/api/app/create").hasAnyRole("USER", "ADMIN")
@@ -51,7 +52,6 @@ public class SecurityConfig {
                                 .requestMatchers("/ws-chat/**").permitAll()
 
                                 // Require authentication for all other endpoints
-                                .requestMatchers(HttpMethod.GET, "/api/app/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/app/search").permitAll()
                                 .anyRequest().permitAll()
                 )

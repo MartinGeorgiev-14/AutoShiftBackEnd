@@ -43,6 +43,14 @@ public class UserIdentificator {
         return jwtGenerator.getUserIdFromJWT(token);
     }
 
+    public String getCurrentUserIdOrNull(){
+        String token = (String) getJWTFromRequest();
+
+        if(token == null) return null;
+
+        return jwtGenerator.getUserIdFromJWT(token);
+    }
+
     private String getJWTFromRequest() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes != null) {

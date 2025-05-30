@@ -20,9 +20,12 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.management.relation.RoleNotFoundException;
+import javax.management.relation.RoleStatus;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserEntityServiceImpl implements UserEntityService {
@@ -128,6 +131,11 @@ public class UserEntityServiceImpl implements UserEntityService {
 
     private AuthResponseDTO mapToAuth(UserEntity user, String token){
         AuthResponseDTO response = new AuthResponseDTO();
+        Set<Role> roles = user.getRoles();
+
+        HashSet<RoleDto> mappedRoles = (HashSet<RoleDto>) roles.stream().map(r -> {
+            return toRoleDto(r);
+        }).collect(Collectors.toSet());
 
         response.setUserId(user.getId());
         response.setPhone(user.getPhone());
@@ -136,9 +144,18 @@ public class UserEntityServiceImpl implements UserEntityService {
         response.setFristName(user.getFirstName());
         response.setLastName(user.getLastName());
         response.setUsername(user.getUsername());
+        response.setRoles(mappedRoles);
 
         return response;
 
+    }
+
+    private RoleDto toRoleDto(Role role){
+        RoleDto mapped = new RoleDto();
+
+        mapped.setName(role.getName());
+
+        return mapped;
     }
 
     private UserEntityDto mapToDto(UserEntity user){

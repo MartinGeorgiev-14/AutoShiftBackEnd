@@ -80,6 +80,22 @@ public class ListingCarController {
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
+    @GetMapping("app/page/createdAt")
+    public ResponseEntity<Map<String, Object>> getCarsByPageSortedByCreatedAt(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize){
+
+        Map<String, Object> body = listingVehicleService.getByPageByCreatedAt(pageNo, pageSize);
+        Integer status = (Integer) body.get("status");
+
+        if(status != 200)
+        {
+            return new ResponseEntity<>(body, HttpStatus.valueOf(status));
+        }
+
+        return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+
     @PostMapping("app/search")
     public ResponseEntity<Map<String, Object>> getListings(
             @RequestBody(required = false) FilterDto filterDto,

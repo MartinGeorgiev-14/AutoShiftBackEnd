@@ -35,7 +35,7 @@ public class ListingCarDto
     private String body;
     private String location;
     private String region;
-
+    private Boolean isFavorited;
     private UserEntityDto user;
 
 

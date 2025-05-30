@@ -198,26 +198,31 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public Map<String, Object> readConversation(UUID conversationId, String senderUsername){
         try{
-            Optional<Conversation> conversation = Optional.of(conversationRepository.getReferenceById(conversationId));
+            Conversation conversation = conversationRepository.findById(conversationId).orElse((null));
             Optional<UserEntity> user = Optional.ofNullable(userEntityRepository.findByUserByUsername(senderUsername));
 
-            if(conversation.isPresent() && user.isPresent()){
+            UUID usertst = user.get().getId();
+            UUID contst = conversation.getId();
+            Boolean tst = user.get().getId().equals(conversation.getBuyer().getId());
+
+
                 if(canAccessConversation(conversationId, senderUsername)){
-                    if(user.get().getId().equals(conversation.get().getBuyer().getId())){
-                        conversation.get().setIsReadByBuyer(true);
-                        conversation.get().setNewMessageCounterBuyer(0);
+                    if(user.get().getId().equals(conversation.getBuyer().getId())){
+                        conversation.setIsReadByBuyer(true);
+                        conversation.setNewMessageCounterBuyer(0);
                     }
                     else{
-                        conversation.get().setIsReadBySeller(true);
-                        conversation.get().setNewMessageCounterSeller(0);
+                        conversation.setIsReadBySeller(true);
+                        conversation.setNewMessageCounterSeller(0);
                     }
 
-                    conversationRepository.save(conversation.get());
+                    Integer inttst = conversation.getNewMessageCounterSeller();
+                    conversationRepository.save(conversation);
                     Map<String, Object> body = bodyCreator.create();
                     Message message = messageCreator.create(false, "Messages Found", "Messages has been found", "success");
 
-                    body.put("type", "conversation");
-                    body.put("response", chatMapper.convertToConversationDto(conversation.get()));
+                    body.put("type", "read");
+                    body.put("response", chatMapper.convertToConversationDto(conversation));
                     body.put("message", message);
                     body.put("status", HttpStatus.OK.value());
 
@@ -226,9 +231,6 @@ public class ChatServiceImpl implements ChatService {
                 }else {
                     throw new AccessDeniedException("User cannot access this chat room");
                 }
-            }else{
-                throw new IllegalArgumentException("Chat room or sender not found");
-            }
         } catch (RuntimeException e) {
             throw new RuntimeException(e);
         }
@@ -252,14 +254,14 @@ public class ChatServiceImpl implements ChatService {
 
                     if(sender.get().getId().equals(conversation.get().getBuyer().getId())){
                         conversation.get().setIsReadByBuyer(true);
-                        Integer increment = conversation.get().getNewMessageCounterBuyer() + 1;
-                        conversation.get().setNewMessageCounterBuyer(increment);
+                        Integer increment = conversation.get().getNewMessageCounterSeller() + 1;
+                        conversation.get().setNewMessageCounterSeller(increment);
                         conversation.get().setLastTimeChatted(LocalDateTime.now());
                     }
                     else{
                         conversation.get().setIsReadBySeller(true);
-                        Integer increment = conversation.get().getNewMessageCounterSeller() + 1;
-                        conversation.get().setNewMessageCounterSeller(increment);
+                        Integer increment = conversation.get().getNewMessageCounterBuyer() + 1;
+                        conversation.get().setNewMessageCounterBuyer(increment);
                         conversation.get().setLastTimeChatted(LocalDateTime.now());
                     }
 
@@ -320,7 +322,7 @@ public class ChatServiceImpl implements ChatService {
         try{
             UUID userId = UUID.fromString(userIdentificator.getCurrentUserId());
             UserEntity user = userEntityRepository.getReferenceById(userId);
-            Sort sort = Sort.by(Sort.Direction.ASC, "lastTimeChatted");
+            Sort sort = Sort.by(Sort.Direction.DESC, "lastTimeChatted");
             Pageable pageRequest = PageRequest.of(pageNo, pageSize, sort);
 
             Page<Conversation> conversations;

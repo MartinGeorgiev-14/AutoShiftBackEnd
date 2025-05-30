@@ -25,4 +25,5 @@ public interface ListingVehicleService {
     boolean canAccessListing(String listingId);
     Map<String, Object> getAllFormOptions();
     Map<String, Object> changeStatusListing(UUID id);
+    Map<String, Object> getByPageByCreatedAt(int pageNo, int pageSize);
 }

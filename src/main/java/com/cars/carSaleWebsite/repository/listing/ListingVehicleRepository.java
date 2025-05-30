@@ -38,4 +38,8 @@ public interface ListingVehicleRepository extends JpaRepository<ListingVehicle, 
     Page<ListingVehicle> findAllByIsActiveFalseAndUserEntity(UserEntity userEntity, Pageable pageable);
 
     List<ListingVehicle> findByUserEntityId(UUID id);
+    Page<ListingVehicle> findByUserEntity(UserEntity user, Pageable pageable);
+
+    @Query("SELECT l FROM ListingVehicle l WHERE l.isActive = true ORDER BY l.createdAt DESC")
+    Page<ListingVehicle> findBySortedCreatedAt(Pageable pageable);
 }

@@ -70,6 +70,7 @@ public class FavoritesMapper {
     public FavoriteFilterResponseDto toFavoriteFilterDto(FavoriteFilter filter){
         FavoriteFilterResponseDto mapped = new FavoriteFilterResponseDto();
 
+        mapped.setId(filter.getId());
         mapped.setName(filter.getName());
         mapped.setIsNotify(filter.getIsNotify());
         mapped.setPriceStart(filter.getPriceStart());

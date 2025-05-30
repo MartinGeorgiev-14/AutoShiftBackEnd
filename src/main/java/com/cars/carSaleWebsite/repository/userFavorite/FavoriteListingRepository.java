@@ -26,4 +26,8 @@ public interface FavoriteListingRepository extends JpaRepository<FavoriteListing
     FavoriteListing findFavoriteListingByListing(@Param("user") UserEntity user, @Param("listing") ListingVehicle listing);
 
     Optional<FavoriteListing> findByUserEntityAndListingVehicle(UserEntity userEntity, ListingVehicle listingVehicle);
+
+    @Query("SELECT COUNT(f) > 0 FROM FavoriteListing f WHERE f.userEntity = :user AND f.listingVehicle = :listing")
+    Boolean existsByUserEntityAndListingVehicle(@Param("user") UserEntity user, @Param("listing") ListingVehicle listing);
+
 }
