@@ -16,6 +16,10 @@ import java.util.UUID;
 
 @Data
 @Entity
+@Table(
+        name = "conversation",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"listing_vehicle_id", "buyer_id"})
+)
 public class Conversation {
     @Id
     @GeneratedValue

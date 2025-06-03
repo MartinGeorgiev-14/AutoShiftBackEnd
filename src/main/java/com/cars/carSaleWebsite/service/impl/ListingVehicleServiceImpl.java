@@ -130,12 +130,26 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
     @Override
     public Map<String, Object> getListingById(UUID id) {
         try{
+            String token = userIdentificator.getCurrentUserIdOrNull();
+            UserEntity currentUser;
+            Boolean favListing = null;
+
+            if(token != null){
+                currentUser = userEntityRepository.getReferenceById(UUID.fromString(token));
+            } else {
+                currentUser = null;
+            }
+
             ListingVehicle car = listingVehicleRepository.findCarById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing was not found"));
             UserEntity user = userEntityRepository.findById(car.getUserEntity().getId()).orElseThrow(() -> new UsernameNotFoundException("User was not found"));
             UserEntityDto mappedUser = userEntityMapper.toDTO(user);
             List<ListingImageDto> images = listingImageService.getAllImagesOfListingById(car);
 
-            ListingCarDto mappedListing = listingCarMapper.toDTO(car, mappedUser, images);
+            if(currentUser != null){
+                favListing = favoriteListingRepository.existsByUserEntityAndListingVehicle(currentUser, car);
+            }
+
+            ListingCarDto mappedListing = listingCarMapper.toDTO(car, mappedUser, images, favListing);
 
             Map<String, Object> body = bodyCreator.create();
             Message message = messageCreator.create(false, "Listing Found", "The listing you've searched has been found", "success");

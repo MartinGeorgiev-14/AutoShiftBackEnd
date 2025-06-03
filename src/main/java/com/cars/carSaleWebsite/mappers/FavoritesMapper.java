@@ -175,7 +175,8 @@ public class FavoritesMapper {
         FavoriteListingDto car = new FavoriteListingDto();
 
         car.setBody(vehicle.getBody().getBody());
-        car.setId(vehicle.getId());
+        car.setId(fav.getId());
+        car.setListingId(vehicle.getId());
         car.setDescription(vehicle.getDescription());
         car.setEngine(vehicle.getEngine().getType());
         car.setGearbox(vehicle.getGearbox().getType());

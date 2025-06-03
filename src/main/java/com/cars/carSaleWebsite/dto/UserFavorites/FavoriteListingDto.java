@@ -14,7 +14,7 @@ import java.util.UUID;
 public class FavoriteListingDto {
 
     private UUID id;
-
+    private UUID listingId;
     private String make;
     private String model;
 
