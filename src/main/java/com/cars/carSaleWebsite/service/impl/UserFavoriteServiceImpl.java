@@ -300,37 +300,7 @@ public class UserFavoriteServiceImpl implements UserFavoriteService {
             return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-
-    @Transactional
-    public Map<String, Object> changeFavoriteFilterName(UUID id, String name){
-        try{
-
-            if (name.length() > 1000){
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The name is too long");
-            }
-
-            FavoriteFilter filter = checkFilterOwner(id);
-
-            filter.setName(name);
-            favoriteFilterRepository.save(filter);
-
-            Map<String, Object> body = bodyCreator.create();
-            Message message = messageCreator.create(true, "Name Changed", "The name has been changed", "success");
-
-            body.put("message", message);
-            body.put("status", HttpStatus.OK.value());
-
-            return body;
-
-        }
-        catch (ResponseStatusException ex) {
-            return messageCreator.createErrorResponse(ex.getReason(), ex.getStatusCode());
-        } catch (Exception ex) {
-            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-
-    }
-
+    
     @Transactional
     public Map<String, Object> changeFavoriteFilterNotify(UUID id){
         try{

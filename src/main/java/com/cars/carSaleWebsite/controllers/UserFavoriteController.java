@@ -122,20 +122,6 @@ public class UserFavoriteController {
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
-    @PatchMapping("filters/change/name/{id}")
-    public ResponseEntity<Map<String, Object>> changeFavoriteFilterName(@RequestBody Map<String, Object> request, @PathVariable UUID id){
-        String name = (String) request.get("name");
-        Map<String, Object> body = userFavoriteService.changeFavoriteFilterName(id, name);
-        Integer status = (Integer) body.get("status");
-
-        if(status != 200)
-        {
-            return new ResponseEntity<>(body, HttpStatus.valueOf(status));
-        }
-
-        return new ResponseEntity<>(body, HttpStatus.OK);
-    }
-
     @PatchMapping("filters/change/notify/{id}")
     public ResponseEntity<Map<String, Object>> changeFavoriteFilterNotify(@PathVariable UUID id){
         Map<String, Object> body = userFavoriteService.changeFavoriteFilterNotify(id);

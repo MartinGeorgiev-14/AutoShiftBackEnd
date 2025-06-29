@@ -1,6 +1,7 @@
 package com.cars.carSaleWebsite.service.impl;
 
 import com.cars.carSaleWebsite.dto.Listing.CRUD.FilterDto;
+import com.cars.carSaleWebsite.helpers.FilterEncoder;
 import com.cars.carSaleWebsite.helpers.UserIdentificator;
 import com.cars.carSaleWebsite.mappers.FavoritesMapper;
 import com.cars.carSaleWebsite.models.entities.email.EmailDetails;
@@ -22,6 +23,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -40,13 +42,14 @@ public class EmailServiceImpl implements EmailService {
     private final FavoritesMapper favoritesMapper;
     private final EditHistoryRepository editHistoryRepository;
     private final FavoriteListingRepository favoriteListingRepository;
+    private final FilterEncoder filterEncoder;
 
     @Value("${spring.mail.username}") private String sender;
 
     @Autowired
     public EmailServiceImpl(JavaMailSender javaMailSender, UserIdentificator userIdentificator,
                             UserEntityRepository userEntityRepository, FavoriteFilterRepository favoriteFilterRepository,
-                            ListingVehicleServiceImpl listingVehicleService, FavoritesMapper favoritesMapper, EditHistoryRepository editHistoryRepository, FavoriteListingRepository favoriteListingRepository) {
+                            ListingVehicleServiceImpl listingVehicleService, FavoritesMapper favoritesMapper, EditHistoryRepository editHistoryRepository, FavoriteListingRepository favoriteListingRepository, FilterEncoder filterEncoder) {
         this.javaMailSender = javaMailSender;
         this.userIdentificator = userIdentificator;
         this.userEntityRepository = userEntityRepository;
@@ -55,6 +58,7 @@ public class EmailServiceImpl implements EmailService {
         this.favoritesMapper = favoritesMapper;
         this.editHistoryRepository = editHistoryRepository;
         this.favoriteListingRepository = favoriteListingRepository;
+        this.filterEncoder = filterEncoder;
     }
 
     @Override
@@ -98,7 +102,12 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-//    @Scheduled(cron = "0 0 8 * * *")
+    @Scheduled(cron = "0 0 8 * * *")
+    public void executeEmailSending(){
+        sendDailyFavoriteFilterNotification();
+        sendDailyFavoriteListingNotification();
+    }
+
     public void sendDailyFavoriteFilterNotification(){
         try {
             List<UserEntity> users = userEntityRepository.findAll();
@@ -131,80 +140,84 @@ public class EmailServiceImpl implements EmailService {
 
                 for (FavoriteFilter f : filters) {
                     StringBuilder lb = new StringBuilder();
+                    Map<String, Object> enFilter = new HashMap<>();
 
                     FilterDto filterDto = favoritesMapper.toFilterDtoFromFavoriteFilter(f, LocalDate.now().minusDays(1));
                     List<ListingVehicle> listings = listingVehicleService.searchCarByCriteria(filterDto);
 
                     if(listings.isEmpty()) continue;
 
+                    enFilter.put("pageNo", 0);
+                    enFilter.put("pageSize", 10);
+                    enFilter.put("sortDirection", "ASC");
+
+
                     sb.append("<br><div>");
-                    lb.append("?page=1");
-                    lb.append("&page=10");
+                    lb.append("?pageNo=0");
+                    lb.append("&pageSize=10");
                     lb.append("&sortDirection=ASC");
 
-                    emailHandlerDouble(sb, lb, "Make and Model", "make", "model",
+                    emailHandlerDouble(sb, enFilter, "Make and Model", "make", "model",
                             f.getMake() != null ? String.valueOf(f.getMake().getId()) : "",
                             f.getModel() != null ? String.valueOf(f.getModel().getId()) : "",
                             f.getMake() != null ? f.getMake().getName() : "",
                             f.getModel() != null ? f.getModel().getName() : "", true);
 
-                    emailHandlerDouble(sb, lb, "Type and Body", "type", "body",
+                    emailHandlerDouble(sb, enFilter, "Type and Body", "type", "body",
                             f.getType() != null ? String.valueOf(f.getType().getId()) : "",
                             f.getBody() != null ? String.valueOf(f.getBody().getId()) : "",
                             f.getType() != null ? f.getType().getType() : "",
                             f.getBody() != null ? f.getBody().getBody() : "", true);
 
-                    emailHandlerDouble(sb, lb, "Region and Location", "region", "location",
+                    emailHandlerDouble(sb, enFilter, "Region and Location", "region", "location",
                             f.getRegion() != null ? String.valueOf(f.getRegion().getId()) : "",
                             f.getLocation() != null ? String.valueOf(f.getLocation().getId()) : "",
                             f.getRegion() != null ? f.getRegion().getRegion() : "",
                             f.getLocation() != null ? f.getLocation().getLocation() : "", true);
 
-                    emailHandlerSingle(sb, lb, "Engine", "engine",
+                    emailHandlerSingle(sb, enFilter, "Engine", "engine",
                             f.getEngine() != null ? String.valueOf(f.getEngine().getId()) : "",
                             f.getEngine() != null ? f.getEngine().getType() : "");
 
-                    emailHandlerSingle(sb, lb, "Gearbox", "gearbox",
+                    emailHandlerSingle(sb, enFilter, "Gearbox", "gearbox",
                             f.getGearbox() != null ? String.valueOf(f.getGearbox().getId()) : "",
                             f.getGearbox() != null ? f.getGearbox().getType() : "");
 
-                    emailHandlerSingle(sb, lb, "Color", "color",
+                    emailHandlerSingle(sb, enFilter, "Color", "color",
                             f.getColor() != null ? String.valueOf(f.getColor().getId()) : "",
                             f.getColor() != null ? f.getColor().getColor() : "");
 
-                    emailHandlerSingle(sb, lb, "Euro Standard", "euroStandard",
+                    emailHandlerSingle(sb, enFilter, "Euro Standard", "euroStandard",
                             f.getEuroStandard() != null ? String.valueOf(f.getEuroStandard().getId()) : "",
                             f.getEuroStandard() != null ? f.getEuroStandard().getStandard() : "");
 
-                    emailHandleStartStop(sb, lb, "Price", "$", "priceStart", "priceEnd",
+                    emailHandleStartStop(sb, enFilter, "Price", "$", "priceStart", "priceEnd",
                             f.getPriceStart() != null ? String.valueOf(f.getPriceStart()) : "",
                             f.getPriceEnd() != null ? String.valueOf(f.getPriceEnd()) : "");
 
-                    emailHandleStartStop(sb, lb, "Manufacture Date", "", "manufactureDateStart", "manufactureDateEnd",
+                    emailHandleStartStop(sb, enFilter, "Manufacture Date", "", "manufactureDateStart", "manufactureDateEnd",
                             f.getManufactureDateStart() != null ? String.valueOf(f.getManufactureDateStart().getYear()) : "",
                             f.getManufactureDateEnd() != null ? String.valueOf(f.getManufactureDateEnd().getYear()) : "",
                             f.getManufactureDateStart() != null ? String.valueOf(f.getManufactureDateStart()) : "",
                             f.getManufactureDateEnd() != null ? String.valueOf(f.getManufactureDateEnd()) : "");
 
-                    emailHandleStartStop(sb, lb, "Horsepower", "hp", "horsepowerStart", "horsepowerEnd",
+                    emailHandleStartStop(sb, enFilter, "Horsepower", "hp", "horsepowerStart", "horsepowerEnd",
                             f.getHorsepowerStart() != null ? String.valueOf(f.getHorsepowerStart()) : "",
                             f.getHorsepowerEnd() != null ? String.valueOf(f.getHorsepowerEnd()) : "");
 
-                    emailHandleStartStop(sb, lb, "Mileage", "km", "mileageStart", "mileageEnd",
+                    emailHandleStartStop(sb, enFilter, "Mileage", "km", "mileageStart", "mileageEnd",
                             f.getMileageStart() != null ? String.valueOf(f.getMileageStart()) : "",
                             f.getMileageEnd() != null ? String.valueOf(f.getMileageEnd()) : "");
 
-                    emailHandleStartStop(sb, lb, "Engine Displacement", "cc", "engineDisplacementStart", "engineDisplacementEnd",
+                    emailHandleStartStop(sb, enFilter, "Engine Displacement", "cc", "engineDisplacementStart", "engineDisplacementEnd",
                             f.getEngineDisplacementStart() != null ? String.valueOf(f.getEngineDisplacementStart()) : "",
                             f.getEngineDisplacementEnd() != null ? String.valueOf(f.getEngineDisplacementEnd()) : "");
 
+                    enFilter.put("createdStart", LocalDate.now().minusDays(1).toString());
+                    String encoded = filterEncoder.encodeFilters(enFilter);
 
-                    lb.append("&createdStart=").append(LocalDate.now().minusDays(1));
-
-                    sb.append("<a href='http://localhost:8080/api/app/search/fromEmail").append(lb).append("'>See Listings</a>");
+                    sb.append("<a href='http://localhost:5173/listings/").append(encoded).append("'>See Listings</a>");
                     sb.append("</div>");
-
-
                 }
 
                 sb.append(htmlEnd);
@@ -260,7 +273,7 @@ public class EmailServiceImpl implements EmailService {
 
                     sb.append("<h2>" + h.getListingVehicle().getModel().getMake().getName() + " " + h.getListingVehicle().getModel().getName() + "</h2>");
                     sb.append("<p>Old price: " + h.getOldPrice() + " New price: " + h.getNewPrice() + "</p>");
-                    sb.append("<a href='http://localhost:8080/api/app/" + h.getListingVehicle().getId() + "'>See Listing</a>");
+                    sb.append("<a href='http://localhost:5173/listing/" + h.getListingVehicle().getId() + "'>See Listing</a>");
                 }
 
                 sb.append(htmlEnd);
@@ -283,54 +296,54 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    private void emailHandlerSingle(StringBuilder sb, StringBuilder lb, String label, String var, String endPVar, String value){
+    private void emailHandlerSingle(StringBuilder sb, Map<String, Object> lb, String label, String var, String endPVar, String value){
         if(!Objects.equals(value, "")){
             sb.append("<p><span>" + label + ": </span>" + value + "</p>");
-            lb.append("&" + var + "=" + endPVar);
+            lb.put(var, endPVar);
         }
     }
 
-    private void emailHandlerDouble(StringBuilder sb, StringBuilder lb, String label, String var1, String var2, String endPVar1, String endPVar2, String value1, String value2, Boolean coma){
+    private void emailHandlerDouble(StringBuilder sb, Map<String, Object> lb, String label, String var1, String var2, String endPVar1, String endPVar2, String value1, String value2, Boolean coma){
         String comaOrInterval = coma ? ", " : " ";
 
         if(!Objects.equals(value1, "") && !Objects.equals(value2, "")){
             sb.append("<p><span>" + label + ": </span>" + value1 + comaOrInterval + value2 + "</p>");
-            lb.append("&" + var1 + "=" + endPVar1);
-            lb.append("&" + var2 + "=" + endPVar2);
+            lb.put(var1, endPVar1);
+            lb.put(var2, endPVar2);
         }else if(!Objects.equals(value1, "")){
             sb.append("<p><span>" + label + ": </span> Start: " + value1 + "</p>");
-            lb.append("&" + var1 + "=" + endPVar1);
+            lb.put(var1, endPVar1);
         }else if(!Objects.equals(value2, "")){
             sb.append("<p><span>" + label + ": </span> End: " + value2 + "</p>");
-            lb.append("&" + var2 + "=" + endPVar2);
+            lb.put(var2, endPVar2);
         }
     }
 
-    private void emailHandleStartStop(StringBuilder sb, StringBuilder lb, String label, String notation, String var1, String var2, String value1, String value2){
+    private void emailHandleStartStop(StringBuilder sb, Map<String, Object> lb, String label, String notation, String var1, String var2, String value1, String value2){
         if(!Objects.equals(value1, "") && !Objects.equals(value2, "")){
             sb.append("<p><span>" + label + ": </span> Start: " + value1 + notation + " End: " + value2 + notation + "</p>");
-            lb.append("&" + var1 + "=" + value1);
-            lb.append("&" + var2 + "=" + value2);
+            lb.put(var1, value1);
+            lb.put(var2, value2);
         }else if(!Objects.equals(value1, "")){
             sb.append("<p><span>" + label + ": </span> Start: " + value1 + notation + "</p>");
-            lb.append("&" + var1 + "=" + value1);
+            lb.put(var1, value1);
         }else if(!Objects.equals(value2, "")){
             sb.append("<p><span>" + label + ": </span> End: " + value2 + notation + "</p>");
-            lb.append("&" + var2 + "=" + value2);
+            lb.put(var2, value2);
         }
     }
 
-    private void emailHandleStartStop(StringBuilder sb, StringBuilder lb, String label, String notation, String var1, String var2, String value1, String value2, String StartPVar, String EndPVar){
+    private void emailHandleStartStop(StringBuilder sb, Map<String, Object> lb, String label, String notation, String var1, String var2, String value1, String value2, String StartPVar, String EndPVar){
         if(!Objects.equals(value1, "") && !Objects.equals(value2, "")){
             sb.append("<p><span>" + label + ": </span> Start: " + value1 + notation + " End: " + value2 + notation + "</p>");
-            lb.append("&" + var1 + "=" + StartPVar);
-            lb.append("&" + var2 + "=" + EndPVar);
+            lb.put(var1, StartPVar);
+            lb.put(var2, EndPVar);
         }else if(!Objects.equals(value1, "")){
             sb.append("<p><span>" + label + ": </span> Start: " + value1 + notation + "</p>");
-            lb.append("&" + var1 + "=" + StartPVar);
+            lb.put(var1, StartPVar);
         }else if(!Objects.equals(value2, "")){
             sb.append("<p><span>" + label + ": </span> End: " + value2 + notation + "</p>");
-            lb.append("&" + var2 + "=" + EndPVar);
+            lb.put(var2, EndPVar);
         }
     }
 

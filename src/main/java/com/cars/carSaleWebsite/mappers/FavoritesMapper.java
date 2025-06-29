@@ -71,7 +71,6 @@ public class FavoritesMapper {
         FavoriteFilterResponseDto mapped = new FavoriteFilterResponseDto();
 
         mapped.setId(filter.getId());
-        mapped.setName(filter.getName());
         mapped.setIsNotify(filter.getIsNotify());
         mapped.setPriceStart(filter.getPriceStart());
         mapped.setPriceEnd(filter.getPriceEnd());
@@ -143,7 +142,6 @@ public class FavoritesMapper {
         Location location = locationRepository.findByIdOrNull(filter.getLocation()).orElse(null);
 
         mapped.setUserEntity(user);
-        mapped.setName(filter.getName());
         mapped.setIsNotify(true);
         mapped.setMake(make);
         mapped.setModel(model);
