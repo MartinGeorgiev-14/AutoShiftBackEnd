@@ -7,6 +7,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,8 +24,8 @@ public class ListingVehicle {
     @Column(name = "price")
     private BigDecimal price;
     private LocalDate manufactureDate;
-    private LocalDate createdAt;
-    private LocalDate editedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime editedAt;
     private Integer horsepower;
     private Integer mileage;
 

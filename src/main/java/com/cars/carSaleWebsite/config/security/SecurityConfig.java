@@ -43,6 +43,7 @@ public class SecurityConfig {
                         auth
                                 // Public endpoints
                                 .requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/app/").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/app/**").permitAll()
 
                                 //User Admin endpoints

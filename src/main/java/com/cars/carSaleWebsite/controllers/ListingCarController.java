@@ -80,6 +80,25 @@ public class ListingCarController {
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
+    @GetMapping("app/page/home")
+    public ResponseEntity<Map<String, Object>> getCarsByPageHome(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "Price", required = false) String sortBy,
+            @RequestParam(value = "sortDirection", defaultValue = "ASC", required = false) String sortDirection,
+            @RequestParam(value = "isActive", defaultValue = "true", required = false) Boolean isActive) {
+
+        Map<String, Object> body = listingVehicleService.getByPageHome(pageNo, pageSize, sortBy, sortDirection, isActive);
+        Integer status = (Integer) body.get("status");
+
+        if(status != 200)
+        {
+            return new ResponseEntity<>(body, HttpStatus.valueOf(status));
+        }
+
+        return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+
     @GetMapping("app/page/createdAt")
     public ResponseEntity<Map<String, Object>> getCarsByPageSortedByCreatedAt(
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,

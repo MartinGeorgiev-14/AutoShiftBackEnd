@@ -255,10 +255,45 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
        return mapped;
     }
 
+    public Map<String, Object> getByPageHome(int pageNo, int pageSize, String sortBy, String sortDirection, Boolean isActive) {
+        try{
+
+            Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+            Pageable pageRequest = PageRequest.of(pageNo, pageSize, sort);
+            Page<ListingVehicle> listings = listingVehicleRepository.findAll(pageRequest);
+
+            List<ListingCarDto> content = listings.stream().map(c -> {
+                List<ListingImage> images = listingImageRepository.getAllListingImagesByListing(c);
+                List<ListingImageDto> mappedImages =  listingImageService.getAllImagesOfListingById(c);
+                UserEntityDto mappeedUser = userEntityMapper.toDTO(c.getUserEntity());
+                ListingCarDto mapped = listingCarMapper.toDTO(c, mappeedUser, mappedImages);
+
+                return mapped;
+            }).collect(Collectors.toList());
+
+            CarPaginationResponse response = listingCarMapper.toPagination(listings, content);
+
+            Map<String, Object> body = bodyCreator.create();
+            Message message = messageCreator.create(false, "Listings Found", "The listing you've searched have been found", "success");
+
+            body.put("listings", response);
+            body.put("message", message);
+            body.put("status", HttpStatus.OK.value());
+
+            return body;
+        } catch (ResponseStatusException ex) {
+            return messageCreator.createErrorResponse(ex.getReason(), ex.getStatusCode());
+        }
+        catch (Exception ex){
+            return messageCreator.createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
+    }
+
     @Override
     public Map<String, Object> getByPage(int pageNo, int pageSize, String sortBy, String sortDirection, Boolean isActive) {
         try{
-            String userId = userIdentificator.getCurrentUserId();
+            String userId = userIdentificator.getCurrentUserIdOrNull();
             UserEntity user = userEntityRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User was not found"));
             Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
             Pageable pageRequest = PageRequest.of(pageNo, pageSize, sort);
@@ -277,7 +312,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
             List<ListingCarDto> content = listings.stream().map(c -> {
                 List<ListingImage> images = listingImageRepository.getAllListingImagesByListing(c);
                 List<ListingImageDto> mappedImages =  listingImageService.getAllImagesOfListingById(c);
-                UserEntityDto mappeedUser = userEntityMapper.toDTO(user);
+                UserEntityDto mappeedUser = userEntityMapper.toDTO(c.getUserEntity());
                 ListingCarDto mapped = listingCarMapper.toDTO(c, mappeedUser, mappedImages);
 
                 return mapped;
@@ -420,7 +455,7 @@ public class ListingVehicleServiceImpl implements ListingVehicleService {
             }
 
             patch(nowcar, newcar);
-            nowcar.setEditedAt(LocalDate.now());
+            nowcar.setEditedAt(LocalDateTime.now());
 
             listingVehicleRepository.save(nowcar);
             List<ListingImage> imagesDb = listingImageRepository.getAllListingImagesByListing(newcar);

@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -124,7 +125,7 @@ public class ListingCarMapper {
     public ListingVehicle toEntityUpdate(ListingVehicle car, ListingCarDto carDto, Model model, Engine engine, Gearbox gearbox, Body body, Location location){
 
         car.setPrice(carDto.getPrice());
-        car.setEditedAt(LocalDate.now());
+        car.setEditedAt(LocalDateTime.now());
         car.setHorsepower(carDto.getHorsepower());
         car.setMileage(carDto.getMileage());
         car.setDescription(carDto.getDescription());
@@ -142,7 +143,7 @@ public class ListingCarMapper {
         ListingVehicle newCar = new ListingVehicle();
 
         newCar.setPrice(car.getPrice());
-        newCar.setCreatedAt(LocalDate.now());
+        newCar.setCreatedAt(LocalDateTime.now());
         newCar.setHorsepower(car.getHorsepower());
         newCar.setMileage(car.getMileage());
         newCar.setDescription(car.getDescription());
@@ -165,7 +166,6 @@ public class ListingCarMapper {
         ListingVehicle newCar = new ListingVehicle();
 
         newCar.setPrice(car.getPrice());
-        newCar.setCreatedAt(LocalDate.now());
         newCar.setHorsepower(car.getHorsepower());
         newCar.setMileage(car.getMileage());
         newCar.setDescription(car.getDescription());

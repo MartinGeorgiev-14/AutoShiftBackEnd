@@ -26,4 +26,5 @@ public interface ListingVehicleService {
     Map<String, Object> getAllFormOptions();
     Map<String, Object> changeStatusListing(UUID id);
     Map<String, Object> getByPageByCreatedAt(int pageNo, int pageSize);
+    Map<String, Object> getByPageHome(int pageNo, int pageSize, String sortBy, String sortDirection, Boolean isActive);
 }

@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Data
@@ -16,8 +17,8 @@ public class ListingCarDto
     private String model;
 
     private BigDecimal price;
-    private LocalDate createdAt;
-    private LocalDate editedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime editedAt;
     private Integer horsepower;
     private Integer mileage;
     private String description;
